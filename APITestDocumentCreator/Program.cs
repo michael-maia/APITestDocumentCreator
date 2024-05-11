@@ -52,15 +52,14 @@ namespace APITestDocumentCreator
                     {
                         string[] dataFields = fileLine.Split(';');
 
-                        string methodNameWithSpaces = Regex.Replace(dataFields[1], "([A-Z])(?![A-Z])", " $1"); // Separates each word in the field.
-
                         InputData data = new ()
                         {
                             SectionNumber = int.Parse(dataFields[0]),
-                            MethodName = methodNameWithSpaces.ToUpper(),
-                            URL = dataFields[2],
-                            Request = dataFields[3],
-                            Response = dataFields[4]
+                            SectionName = dataFields[1],
+                            MethodName = Regex.Replace(dataFields[2], "([A-Z])(?![A-Z])", " $1").ToUpper(), // Separates each word in the field.
+                            URL = dataFields[3],
+                            Request = dataFields[4],
+                            Response = dataFields[5]
                         };
 
                         dataList.Add(data);
@@ -90,23 +89,38 @@ namespace APITestDocumentCreator
 
                 XWPFRun titleRun = titleParagraph.CreateRun();
                 titleRun.FontFamily = "Calibri";
-                titleRun.FontSize = 20;
+                titleRun.FontSize = 18;
                 titleRun.IsBold = true;
                 titleRun.SetText(titleText.ToUpper());
 
+                int tempSectionNumber = 0;
+
                 foreach(InputData data in dataList)
                 {
-                    // Document section
-                    XWPFParagraph documentSection = document.CreateParagraph();
-                    documentSection.Alignment = ParagraphAlignment.LEFT;
-                    documentSection.VerticalAlignment = TextAlignment.CENTER;
+                    if(data.SectionNumber > tempSectionNumber)
+                    {
+                        if(tempSectionNumber > 0)
+                        {
+                            // Adding a page break in every new section after the first one.
+                            XWPFParagraph addBreak = document.CreateParagraph();
+                            XWPFRun addBreakRun = addBreak.CreateRun();
+                            addBreakRun.AddBreak();
+                        }
 
-                    XWPFRun documentSectionRun = documentSection.CreateRun();
-                    documentSectionRun.FontFamily = "Calibri";
-                    documentSectionRun.FontSize = 14;
-                    documentSectionRun.IsBold = true;
-                    documentSectionRun.SetColor("44AE2F");
-                    documentSectionRun.SetText("TESTE");
+                        // Document section
+                        XWPFParagraph documentSection = document.CreateParagraph();
+                        documentSection.Alignment = ParagraphAlignment.LEFT;
+                        documentSection.VerticalAlignment = TextAlignment.CENTER;
+
+                        XWPFRun documentSectionRun = documentSection.CreateRun();
+                        documentSectionRun.FontFamily = "Calibri";
+                        documentSectionRun.FontSize = 14;
+                        documentSectionRun.IsBold = true;
+                        documentSectionRun.SetColor("44AE2F");
+                        documentSectionRun.SetText($"{data.SectionNumber} - {data.SectionName.ToUpper()}");
+
+                        tempSectionNumber = data.SectionNumber;
+                    }
 
                     // This variables will help in the parts where we describe the request and response text
                     string jsonWithIdentation;
@@ -128,7 +142,6 @@ namespace APITestDocumentCreator
                     endpointRequestRun.IsBold = true;
                     endpointRequestRun.SetColor("297FC2");
                     endpointRequestRun.SetText($"REQUISIÇÃO - {data.MethodName}");
-                    //endpointRequestRun.AddCarriageReturn();
 
                     // Endpoint URL used in the request.
                     XWPFParagraph endpointRequestURL = document.CreateParagraph();
@@ -222,10 +235,6 @@ namespace APITestDocumentCreator
                             endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
                         }
                     }
-
-                    XWPFParagraph addBreak = document.CreateParagraph();
-                    XWPFRun addBreakRun = addBreak.CreateRun();
-                    addBreakRun.AddBreak();
                 }
 
                 // Create an docx. file and writes the document content into it
@@ -343,6 +352,7 @@ namespace APITestDocumentCreator
     public class InputData()
     {
         public int SectionNumber { get; set; }
+        public string SectionName { get; set; }
         public string MethodName { get; set; }
         public string URL { get; set; }
         public string Request { get; set; }
