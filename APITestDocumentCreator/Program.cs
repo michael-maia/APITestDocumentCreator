@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using NPOI.XWPF.UserModel;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace APITestDocumentCreator
 {
@@ -51,10 +52,12 @@ namespace APITestDocumentCreator
                     {
                         string[] dataFields = fileLine.Split(';');
 
+                        string methodNameWithSpaces = Regex.Replace(dataFields[1], "([A-Z])(?![A-Z])", " $1"); // Separates each word in the field.
+
                         InputData data = new ()
                         {
                             SectionNumber = int.Parse(dataFields[0]),
-                            MethodName = dataFields[1],
+                            MethodName = methodNameWithSpaces.ToUpper(),
                             URL = dataFields[2],
                             Request = dataFields[3],
                             Response = dataFields[4]
@@ -89,7 +92,7 @@ namespace APITestDocumentCreator
                 titleRun.FontFamily = "Calibri";
                 titleRun.FontSize = 20;
                 titleRun.IsBold = true;
-                titleRun.SetText(titleText);
+                titleRun.SetText(titleText.ToUpper());
 
                 foreach(InputData data in dataList)
                 {
