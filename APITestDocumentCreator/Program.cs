@@ -42,7 +42,7 @@ namespace APITestDocumentCreator
             // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
             try
             {
-                using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.UTF8, false, options))
+                using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.Default, false, options))
                 {
                     string fileLine;
 
@@ -125,14 +125,23 @@ namespace APITestDocumentCreator
                     endpointRequestRun.IsBold = true;
                     endpointRequestRun.SetColor("297FC2");
                     endpointRequestRun.SetText($"REQUISIÇÃO - {data.MethodName}");
+                    //endpointRequestRun.AddCarriageReturn();
 
-                    XWPFRun endpointRequestURLRun = endpointRequest.CreateRun();
+                    // Endpoint URL used in the request.
+                    XWPFParagraph endpointRequestURL = document.CreateParagraph();
+                    endpointRequestURL.Alignment = ParagraphAlignment.LEFT;
+                    endpointRequestURL.VerticalAlignment = TextAlignment.CENTER;
+
+                    XWPFRun endpointRequestURLRun = endpointRequestURL.CreateRun();
                     endpointRequestURLRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
                     endpointRequestURLRun.FontSize = 10;
                     endpointRequestURLRun.SetText($"URL: {data.URL}");
 
                     // Endpoint JSON request
-                    XWPFRun endpointRequestJSONRun = endpointRequest.CreateRun();
+                    XWPFParagraph endpointRequestJSON = document.CreateParagraph();
+                    endpointRequestJSON.Alignment = ParagraphAlignment.LEFT;
+
+                    XWPFRun endpointRequestJSONRun = endpointRequestJSON.CreateRun();
                     endpointRequestJSONRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
                     endpointRequestJSONRun.FontSize = 10;
 
@@ -144,6 +153,8 @@ namespace APITestDocumentCreator
                     }
                     else
                     {
+                        endpointRequestJSONRun.SetText($"BODY:");
+
                         jsonWithIdentation = PrettyJson(jsonRequestText); // Formatting the JSON
                         lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
 
@@ -179,7 +190,7 @@ namespace APITestDocumentCreator
                     endpointResponseRun.FontFamily = "Calibri";
                     endpointResponseRun.FontSize = 12;
                     endpointResponseRun.IsBold = true;
-                    endpointResponseRun.SetColor("297FC2");
+                    endpointResponseRun.SetColor("ff0000");
                     endpointResponseRun.SetText($"RESPOSTA - {data.MethodName}");
 
                     // Endpoint JSON response
@@ -208,6 +219,10 @@ namespace APITestDocumentCreator
                             endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
                         }
                     }
+
+                    XWPFParagraph addBreak = document.CreateParagraph();
+                    XWPFRun addBreakRun = addBreak.CreateRun();
+                    addBreakRun.AddBreak();
                 }
 
                 // Create an docx. file and writes the document content into it
