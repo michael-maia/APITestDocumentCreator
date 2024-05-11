@@ -16,11 +16,12 @@ namespace APITestDocumentCreator
             // Create folders and input file necessary for the application.
             CreateApplicationBasicFolderStructure(baseFolder, resultFolder);
 
-            // Checking user input for document title.
+            // Registering the user input for document title.
             Console.Write("\n> What is the title of the document?\nTitle: ");
-            string titleText = Console.ReadLine();
+            string? titleText = Console.ReadLine();
 
-            while (titleText == "") // Checking if the user will input a title text to avoid be empty.
+            // Checking if the user will input a title text to avoid be empty.
+            while (titleText == "")
             {
                 Console.Write("[INFO] The title can't be empty!\nTitle: ");
                 titleText = Console.ReadLine();
@@ -36,14 +37,16 @@ namespace APITestDocumentCreator
                 Options = FileOptions.None
             };
 
-            List<InputData> dataList = Enumerable.Empty<InputData>().ToList();
+            List<InputData> dataList = Enumerable.Empty<InputData>().ToList(); // List that will hold every line of the file.
 
+            // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
             try
             {
                 using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.UTF8, false, options))
                 {
                     string fileLine;
 
+                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
                     while ((fileLine = streamInputData.ReadLine()) != null)
                     {
                         string[] dataFields = fileLine.Split(';');
@@ -58,19 +61,19 @@ namespace APITestDocumentCreator
                         };
 
                         dataList.Add(data);
-                        //Console.WriteLine(data);
                     }
                 }
             }
             catch(IOException ioException)
             {
-                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!");
+                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
             }
             catch (Exception exception)
             {
                 PrintGenericErrorException(exception);
             }
 
+            // Creating the .docx document
             using (XWPFDocument document = new())
             {
                 // Document title
@@ -88,59 +91,124 @@ namespace APITestDocumentCreator
                 titleRun.IsBold = true;
                 titleRun.SetText(titleText);
 
-                // Document section
-                XWPFParagraph documentSection = document.CreateParagraph();
-                documentSection.Alignment = ParagraphAlignment.LEFT;
-                documentSection.VerticalAlignment = TextAlignment.CENTER;
-
-                XWPFRun documentSectionRun = documentSection.CreateRun();
-                documentSectionRun.FontFamily = "Calibri";
-                documentSectionRun.FontSize = 14;
-                documentSectionRun.IsBold = true;
-                documentSectionRun.SetColor("44AE2F");
-                documentSectionRun.SetText("SECTION TEST");
-
-                // Endpoint request / response title
-                XWPFParagraph endpointRequest = document.CreateParagraph();
-                endpointRequest.Alignment = ParagraphAlignment.CENTER;
-                endpointRequest.VerticalAlignment = TextAlignment.CENTER;
-                endpointRequest.BorderTop = Borders.Single;
-                endpointRequest.BorderLeft = Borders.Single;
-                endpointRequest.BorderRight = Borders.Single;
-                endpointRequest.BorderBottom = Borders.Single;
-
-                XWPFRun endpointRequestRun = endpointRequest.CreateRun();
-                endpointRequestRun.FontFamily = "Calibri";
-                endpointRequestRun.FontSize = 12;
-                endpointRequestRun.IsBold = true;
-                endpointRequestRun.SetColor("297FC2");
-                endpointRequestRun.SetText("REQUEST TEST");
-
-                // Endpoint JSON request / response
-                string jsonText = "{\"name\":\"Adeel Solangi\",\"language\":\"Sindhi\",\"id\":\"V59OF92YF627HFY0\",\"bio\":\"Donec lobortis eleifend condimentum. Cras dictum dolor lacinia lectus vehicula rutrum. Maecenas quis nisi nunc. Nam tristique feugiat est vitae mollis. Maecenas quis nisi nunc.\",\"version\":6.1}";
-                string jsonWithIdentation = PrettyJson(jsonText); // Formatting the JSON
-                string[] separator = new[] { "\r\n", "\r", "\n" };
-                string[] lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
-
-                // Create a paragraph within the cell for each line of the JSON content
-                foreach (string line in lines)
+                foreach(InputData data in dataList)
                 {
-                    XWPFParagraph endpointJSON = document.CreateParagraph();
+                    // Document section
+                    XWPFParagraph documentSection = document.CreateParagraph();
+                    documentSection.Alignment = ParagraphAlignment.LEFT;
+                    documentSection.VerticalAlignment = TextAlignment.CENTER;
 
-                    XWPFRun run = endpointJSON.CreateRun();
-                    run.SetText(line);
-                    run.FontFamily = "Calibri"; // Set font to maintain preformatted style
-                    run.FontSize = 10;
+                    XWPFRun documentSectionRun = documentSection.CreateRun();
+                    documentSectionRun.FontFamily = "Calibri";
+                    documentSectionRun.FontSize = 14;
+                    documentSectionRun.IsBold = true;
+                    documentSectionRun.SetColor("44AE2F");
+                    documentSectionRun.SetText("TESTE");
 
-                    // Set indentation to mimic JSON structure
-                    int indentationLevel = GetIndentationLevel(line);
-                    for (int i = 0; i < indentationLevel; i++)
+                    // This variables will help in the parts where we describe the request and response text
+                    string jsonWithIdentation;
+                    string[] separator = new[] { "\r\n", "\r", "\n" };
+                    string[] lines;
+
+                    // Endpoint request title
+                    XWPFParagraph endpointRequest = document.CreateParagraph();
+                    endpointRequest.Alignment = ParagraphAlignment.CENTER;
+                    endpointRequest.VerticalAlignment = TextAlignment.CENTER;
+                    endpointRequest.BorderTop = Borders.Single;
+                    endpointRequest.BorderLeft = Borders.Single;
+                    endpointRequest.BorderRight = Borders.Single;
+                    endpointRequest.BorderBottom = Borders.Single;
+
+                    XWPFRun endpointRequestRun = endpointRequest.CreateRun();
+                    endpointRequestRun.FontFamily = "Calibri";
+                    endpointRequestRun.FontSize = 12;
+                    endpointRequestRun.IsBold = true;
+                    endpointRequestRun.SetColor("297FC2");
+                    endpointRequestRun.SetText($"REQUISIÇÃO - {data.MethodName}");
+
+                    XWPFRun endpointRequestURLRun = endpointRequest.CreateRun();
+                    endpointRequestURLRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
+                    endpointRequestURLRun.FontSize = 10;
+                    endpointRequestURLRun.SetText($"URL: {data.URL}");
+
+                    // Endpoint JSON request
+                    XWPFRun endpointRequestJSONRun = endpointRequest.CreateRun();
+                    endpointRequestJSONRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
+                    endpointRequestJSONRun.FontSize = 10;
+
+                    string jsonRequestText = data.Request;
+
+                    if (jsonRequestText == "NULL")
                     {
-                        endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
+                        endpointRequestJSONRun.SetText($"BODY: null");
+                    }
+                    else
+                    {
+                        jsonWithIdentation = PrettyJson(jsonRequestText); // Formatting the JSON
+                        lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
+
+                        // Create a paragraph within the cell for each line of the JSON content
+                        foreach (string line in lines)
+                        {
+                            XWPFParagraph endpointJSON = document.CreateParagraph();
+
+                            XWPFRun run = endpointJSON.CreateRun();
+                            run.SetText(line);
+                            run.FontFamily = "Calibri"; // Set font to maintain preformatted style
+                            run.FontSize = 10;
+
+                            // Set indentation to mimic JSON structure
+                            int indentationLevel = GetIndentationLevel(line);
+                            for (int i = 0; i < indentationLevel; i++)
+                            {
+                                endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
+                            }
+                        }
+                    }
+
+                    // Endpoint response title
+                    XWPFParagraph endpointResponse = document.CreateParagraph();
+                    endpointResponse.Alignment = ParagraphAlignment.CENTER;
+                    endpointResponse.VerticalAlignment = TextAlignment.CENTER;
+                    endpointResponse.BorderTop = Borders.Single;
+                    endpointResponse.BorderLeft = Borders.Single;
+                    endpointResponse.BorderRight = Borders.Single;
+                    endpointResponse.BorderBottom = Borders.Single;
+
+                    XWPFRun endpointResponseRun = endpointResponse.CreateRun();
+                    endpointResponseRun.FontFamily = "Calibri";
+                    endpointResponseRun.FontSize = 12;
+                    endpointResponseRun.IsBold = true;
+                    endpointResponseRun.SetColor("297FC2");
+                    endpointResponseRun.SetText($"RESPOSTA - {data.MethodName}");
+
+                    // Endpoint JSON response
+                    XWPFRun endpointResponseJSONRun = endpointResponse.CreateRun();
+                    endpointResponseJSONRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
+                    endpointResponseJSONRun.FontSize = 10;
+
+                    string jsonResponseText = data.Response;
+                    jsonWithIdentation = PrettyJson(jsonResponseText); // Formatting the JSON
+                    lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
+
+                    // Create a paragraph within the cell for each line of the JSON content
+                    foreach (string line in lines)
+                    {
+                        XWPFParagraph endpointJSON = document.CreateParagraph();
+
+                        XWPFRun run = endpointJSON.CreateRun();
+                        run.SetText(line);
+                        run.FontFamily = "Calibri"; // Set font to maintain preformatted style
+                        run.FontSize = 10;
+
+                        // Set indentation to mimic JSON structure
+                        int indentationLevel = GetIndentationLevel(line);
+                        for (int i = 0; i < indentationLevel; i++)
+                        {
+                            endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
+                        }
                     }
                 }
-
-
 
                 // Create an docx. file and writes the document content into it
                 using (FileStream fs = new($"{resultFolder}\\API_Test_Document.docx", FileMode.Create, FileAccess.Write))
@@ -164,7 +232,7 @@ namespace APITestDocumentCreator
             Console.WriteLine("4) REQUEST: JSON used in the request (don't need pre-formatting).");
             Console.WriteLine("5) RESPONSE: JSON received in the response (don't need pre-formatting).");
 
-            Console.WriteLine("\n> The data is following the pattern?");
+            Console.WriteLine("\n> Before you continue, check if there is data inside the input file.\nCan we proceed?");
 
             bool patternDecisionLoop = true;
             while (patternDecisionLoop)
@@ -198,24 +266,28 @@ namespace APITestDocumentCreator
         {
             try
             {
-                // Checking if the all the folder structure already exist.
+                // Checking if the folder structure already exists.
                 if(Directory.Exists(resultFolder))
                 {
                     Console.WriteLine($"[INFO] Basic folder already exists! No need for creation.");
                 }
                 else
                 {
-                    // Creating base and result folder, so both will be created in the same function
+                    // Creating bot base and result folder in the same function.
                     Console.WriteLine($"[INFO] Creating basic folder strucutre in the following path: {baseFolder}");
                     Directory.CreateDirectory($"{resultFolder}");
                 }
 
-                // Checking if the input file exists, so we don't delete accidentally recreate the file with the data inside it.
+                // Checking if the input file exists so we don't accidentally recreate the file and delete the data inside it.
                 if (!File.Exists($"{baseFolder}\\Input_Data.txt"))
                 {
-                    // Creating the file for the user to input all data that should read and exported to the document.
+                    // Creating the file for the user to input all data that should be read and exported to the document.
                     File.Create($"{baseFolder}\\Input_Data.txt").Close();
                     Console.WriteLine($"[INFO] Input file 'Input_Data.txt' has been created inside the folder");
+                }
+                else
+                {
+                    Console.WriteLine($"[INFO] Input file already exist, please put the data inside it!");
                 }
             }
             catch (Exception exception)
@@ -227,7 +299,10 @@ namespace APITestDocumentCreator
         // Apply indentation to the raw JSON string and return to be used in the document
         public static string PrettyJson(string unPrettyJson)
         {
-            JObject parsedJson = JObject.Parse(unPrettyJson);
+            string jsonWithoutDoubleQuotation = unPrettyJson.Replace("\"\"", "\""); // Adjusting double quotation marks that appears when the application reads the JSON.
+            string jsonBracketsRemovedStartEnd = jsonWithoutDoubleQuotation.Substring(1, jsonWithoutDoubleQuotation.Length - 2).TrimStart('[').TrimEnd(']'); // When a JSON starts and ends with a bracket, this will remove it because Newtonsoft interprets as an array instead of JSON and will cause an error.
+
+            JObject parsedJson = JObject.Parse(jsonBracketsRemovedStartEnd);
             return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
         }
 
@@ -245,6 +320,8 @@ namespace APITestDocumentCreator
             return level;
         }
     }
+
+    // Auxiliary class to be able to serialize the JSON
     public class InputData()
     {
         public int SectionNumber { get; set; }
