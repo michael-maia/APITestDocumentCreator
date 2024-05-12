@@ -1,7 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NPOI;
+using NPOI.HPSF;
 using NPOI.XWPF.UserModel;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -28,6 +29,15 @@ namespace APITestDocumentCreator
             {
                 Console.Write("[INFO] The title can't be empty!\nTitle: ");
                 titleText = Console.ReadLine();
+            }
+
+            Console.Write("\n\n> What's the document's author name?\nAuthor: ");
+            string? documentAuthor = Console.ReadLine();
+
+            while (documentAuthor == "")
+            {
+                Console.Write("[INFO] The author's name can't be empty!\nAuthor: ");
+                documentAuthor = Console.ReadLine();
             }
 
             // Ask the User if the data inside the 'Input_Txt.txt' follows a specific pattern, that it's showed in the console.
@@ -84,6 +94,15 @@ namespace APITestDocumentCreator
             // Creating the .docx document
             using (XWPFDocument document = new())
             {
+                // Document properties
+                POIXMLProperties properties = document.GetProperties();
+
+                NPOI.OpenXml4Net.OPC.Internal.PackagePropertiesPart underlyingProp = properties.CoreProperties.GetUnderlyingProperties();
+                underlyingProp.SetCreatorProperty(documentAuthor);
+
+                NPOI.OpenXmlFormats.CT_ExtendedProperties extendedProp = properties.ExtendedProperties.GetUnderlyingProperties();
+                extendedProp.Application = "Microsoft Office Word";
+
                 // Document title
                 XWPFParagraph titleParagraph = document.CreateParagraph();
                 titleParagraph.Alignment = ParagraphAlignment.CENTER;
@@ -308,7 +327,7 @@ namespace APITestDocumentCreator
             bool patternDecisionLoop = true;
             while (patternDecisionLoop)
             {
-                Console.Write("\n- Type '1' if it's OK\n- Type '2' to exit application\nResponse: ");
+                Console.Write("\n\n- Type '1' if it's OK\n- Type '2' to exit application\nResponse: ");
                 ConsoleKeyInfo patternDecision = Console.ReadKey();
 
                 switch (patternDecision.Key)
