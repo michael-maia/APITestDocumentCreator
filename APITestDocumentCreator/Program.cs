@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NPOI;
-using NPOI.HPSF;
+using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,7 +18,7 @@ namespace APITestDocumentCreator
             string picturesFolder = $"{baseFolder}\\Pictures";
 
             // Create folders and input file necessary for the application.
-            CreateApplicationBasicFolderStructure(baseFolder, resultFolder, picturesFolder);
+            CreateApplicationBasicStructure(baseFolder, resultFolder, picturesFolder);
 
             // Registering the user input for document title.
             Console.Write("\n> What is the title of the document?\nTitle: ");
@@ -31,7 +31,7 @@ namespace APITestDocumentCreator
                 titleText = Console.ReadLine();
             }
 
-            Console.Write("\n\n> What's the document's author name?\nAuthor: ");
+            Console.Write("\n> What's the document's author name?\nAuthor: ");
             string? documentAuthor = Console.ReadLine();
 
             while (documentAuthor == "")
@@ -90,6 +90,10 @@ namespace APITestDocumentCreator
             {
                 PrintGenericErrorException(exception);
             }
+
+            // Retrieving the parameters name list in the JSON file that the user wants to highlight in the document.
+            string highlightParametersJson = File.ReadAllText($"{baseFolder}\\HighlightParameters.json");
+            HighlightParameters? highlightParameters = JsonConvert.DeserializeObject<HighlightParameters>(highlightParametersJson);
 
             // Creating the .docx document
             using (XWPFDocument document = new())
@@ -247,6 +251,10 @@ namespace APITestDocumentCreator
                             run.FontFamily = "Calibri"; // Set font to maintain preformatted style
                             run.FontSize = 10;
 
+                            // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
+                            // to a JSON list created and populated by the user.
+                            HighlightRun(highlightParameters, line, run);
+
                             // Set indentation to mimic JSON structure
                             int indentationLevel = GetIndentationLevel(line);
                             for (int i = 0; i < indentationLevel; i++)
@@ -291,6 +299,10 @@ namespace APITestDocumentCreator
                         run.FontFamily = "Calibri"; // Set font to maintain preformatted style
                         run.FontSize = 10;
 
+                        // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
+                        // to a JSON list created and populated by the user.
+                        HighlightRun(highlightParameters, line, run);
+
                         // Set indentation to mimic JSON structure
                         int indentationLevel = GetIndentationLevel(line);
                         for (int i = 0; i < indentationLevel; i++)
@@ -305,6 +317,21 @@ namespace APITestDocumentCreator
                 {
                     document.Write(fs);
                 }
+            }
+        }
+
+        private static void HighlightRun(HighlightParameters highlightParameters, string line, XWPFRun run)
+        {
+            string[] parameterKeyValue = line.Split(':');
+            string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
+            bool highlightCondition = Array.Exists(highlightParameters.ParametersList, name => name.Equals(adjustedParameterName));
+
+            if (highlightCondition == true)
+            {
+                run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                {
+                    val = ST_HighlightColor.yellow
+                };
             }
         }
 
@@ -327,7 +354,7 @@ namespace APITestDocumentCreator
             bool patternDecisionLoop = true;
             while (patternDecisionLoop)
             {
-                Console.Write("\n\n- Type '1' if it's OK\n- Type '2' to exit application\nResponse: ");
+                Console.Write("\n- Type '1' if it's OK\n- Type '2' to exit application\nResponse: ");
                 ConsoleKeyInfo patternDecision = Console.ReadKey();
 
                 switch (patternDecision.Key)
@@ -352,7 +379,7 @@ namespace APITestDocumentCreator
             }
         }
 
-        private static void CreateApplicationBasicFolderStructure(string baseFolder, string resultFolder, string picturesFolder)
+        private static void CreateApplicationBasicStructure(string baseFolder, string resultFolder, string picturesFolder)
         {
             try
             {
@@ -369,16 +396,26 @@ namespace APITestDocumentCreator
                     Directory.CreateDirectory($"{picturesFolder}");
                 }
 
-                // Checking if the input file exists so we don't accidentally recreate the file and delete the data inside it.
+                // Checking if the input file don't exists so we don't accidentally recreate the file and delete the data inside it.
                 if (!File.Exists($"{baseFolder}\\Input_Data.txt"))
                 {
-                    // Creating the file for the user to input all data that should be read and exported to the document.
                     File.Create($"{baseFolder}\\Input_Data.txt").Close();
                     Console.WriteLine($"[INFO] Input file 'Input_Data.txt' has been created inside the folder");
                 }
                 else
                 {
                     Console.WriteLine($"[INFO] Input file already exist, please put the data inside it!");
+                }
+
+                // Here the application will verify if the highlight file don't exists and if is true another one will be created.
+                if (!File.Exists($"{baseFolder}\\HighlightParameters.json"))
+                {
+                    File.Create($"{baseFolder}\\HighlightParameters.json").Close();
+                    Console.WriteLine($"[INFO] Highlight file 'HighlightParameters.json' has been created inside the folder");
+                }
+                else
+                {
+                    Console.WriteLine($"[INFO] Highlight file already exist, please put the parameter names in it!");
                 }
             }
             catch (Exception exception)
@@ -421,5 +458,10 @@ namespace APITestDocumentCreator
         public string URL { get; set; }
         public string Request { get; set; }
         public string Response { get; set; }
+    }
+
+    public class HighlightParameters()
+    {
+        public string[] ParametersList { get; set; }
     }
 }
