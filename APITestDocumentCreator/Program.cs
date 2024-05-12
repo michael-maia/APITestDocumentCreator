@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NPOI.XWPF.UserModel;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,12 +11,13 @@ namespace APITestDocumentCreator
     {
         static void Main(string[] args)
         {
-            // Base and result folder paths for the application, so it can read the input file and export the final .docx
+            // Base, pictures and result folder paths for the application, so it can read the input file and export the final .docx
             string baseFolder = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\\API_Test_Document_Creator";
             string resultFolder = $"{baseFolder}\\Result";
+            string picturesFolder = $"{baseFolder}\\Pictures";
 
             // Create folders and input file necessary for the application.
-            CreateApplicationBasicFolderStructure(baseFolder, resultFolder);
+            CreateApplicationBasicFolderStructure(baseFolder, resultFolder, picturesFolder);
 
             // Registering the user input for document title.
             Console.Write("\n> What is the title of the document?\nTitle: ");
@@ -31,6 +33,9 @@ namespace APITestDocumentCreator
             // Ask the User if the data inside the 'Input_Txt.txt' follows a specific pattern, that it's showed in the console.
             DataPatternApresentationAndVerification();
 
+            // Retrieving all prints stored in the 'Pictures' folder.
+            string[] picturesList = Directory.GetFiles(picturesFolder);
+
             FileStreamOptions options = new()
             {
                 Access = FileAccess.Read,
@@ -38,7 +43,8 @@ namespace APITestDocumentCreator
                 Options = FileOptions.None
             };
 
-            List<InputData> dataList = Enumerable.Empty<InputData>().ToList(); // List that will hold every line of the file.
+            // List that will hold every line of the file.
+            List<InputData> dataList = Enumerable.Empty<InputData>().ToList();
 
             // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
             try
@@ -104,7 +110,7 @@ namespace APITestDocumentCreator
                             // Adding a page break in every new section after the first one.
                             XWPFParagraph addBreak = document.CreateParagraph();
                             XWPFRun addBreakRun = addBreak.CreateRun();
-                            addBreakRun.AddBreak();
+                            addBreakRun.AddBreak(BreakType.PAGE);
                         }
 
                         // Document section
@@ -116,8 +122,46 @@ namespace APITestDocumentCreator
                         documentSectionRun.FontFamily = "Calibri";
                         documentSectionRun.FontSize = 14;
                         documentSectionRun.IsBold = true;
+                        documentSectionRun.Underline = UnderlinePatterns.Single;
                         documentSectionRun.SetColor("44AE2F");
                         documentSectionRun.SetText($"{data.SectionNumber} - {data.SectionName.ToUpper()}");
+
+                        List<string> sectionPictures = new();
+
+                        foreach(string picture in picturesList)
+                        {
+                            string pictureName = Path.GetFileNameWithoutExtension(picture);
+
+                            if(pictureName.StartsWith(data.SectionNumber.ToString()) == true)
+                            {
+                                sectionPictures.Add(picture);
+                            }
+                        }
+
+                        if(sectionPictures.Count > 0)
+                        {
+                            XWPFParagraph documentSectionPictures = document.CreateParagraph();
+                            documentSectionPictures.Alignment = ParagraphAlignment.CENTER;
+                            documentSectionPictures.VerticalAlignment = TextAlignment.CENTER;
+
+                            int widthCentimeters = 15;
+                            int heightCentimeters = 10;
+
+                            int widthEmus = widthCentimeters * 360000;
+                            int heightEmus = heightCentimeters * 360000;
+
+                            foreach(string picPath in sectionPictures)
+                            {
+                                XWPFRun pictureRun = documentSectionPictures.CreateRun();
+
+                                using (FileStream picData = new FileStream(picPath, FileMode.Open, FileAccess.Read))
+                                {
+                                    pictureRun.AddPicture(picData, (int)PictureType.PNG, "image1", widthEmus, heightEmus);
+                                }
+
+                                pictureRun.AddCarriageReturn();
+                            }
+                        }
 
                         tempSectionNumber = data.SectionNumber;
                     }
@@ -289,7 +333,7 @@ namespace APITestDocumentCreator
             }
         }
 
-        private static void CreateApplicationBasicFolderStructure(string baseFolder, string resultFolder)
+        private static void CreateApplicationBasicFolderStructure(string baseFolder, string resultFolder, string picturesFolder)
         {
             try
             {
@@ -303,6 +347,7 @@ namespace APITestDocumentCreator
                     // Creating bot base and result folder in the same function.
                     Console.WriteLine($"[INFO] Creating basic folder strucutre in the following path: {baseFolder}");
                     Directory.CreateDirectory($"{resultFolder}");
+                    Directory.CreateDirectory($"{picturesFolder}");
                 }
 
                 // Checking if the input file exists so we don't accidentally recreate the file and delete the data inside it.
