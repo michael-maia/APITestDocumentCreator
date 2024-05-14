@@ -10,90 +10,29 @@ namespace APITestDocumentCreator
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             // Base, pictures and result folder paths for the application, so it can read the input file and export the final .docx
             string baseFolder = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\\API_Test_Document_Creator";
             string resultFolder = $"{baseFolder}\\Result";
             string picturesFolder = $"{baseFolder}\\Pictures";
 
-            // Create folders and input file necessary for the application.
+            // Create folders and input files necessary for the application.
             CreateApplicationBasicStructure(baseFolder, resultFolder, picturesFolder);
 
-            // Registering the user input for document title.
-            Console.Write("\n> What is the title of the document?\nTitle: ");
-            string? titleText = Console.ReadLine();
+            // Retrieving basic document information.
+            string titleText, documentAuthor;
+            DocumentBasicInformation(out titleText, out documentAuthor);
 
-            // Checking if the user will input a title text to avoid be empty.
-            while (titleText == "")
-            {
-                Console.Write("[INFO] The title can't be empty!\nTitle: ");
-                titleText = Console.ReadLine();
-            }
-
-            Console.Write("\n> What's the document's author name?\nAuthor: ");
-            string? documentAuthor = Console.ReadLine();
-
-            while (documentAuthor == "")
-            {
-                Console.Write("[INFO] The author's name can't be empty!\nAuthor: ");
-                documentAuthor = Console.ReadLine();
-            }
-
-            // Ask the User if the data inside the 'Input_Txt.txt' follows a specific pattern, that it's showed in the console.
+            // Ask the user if the data inside the 'Input_Txt.txt' follows a specific pattern, that it's showed in the console.
             DataPatternApresentationAndVerification();
 
-            // Retrieving all prints stored in the 'Pictures' folder.
-            string[] picturesList = Directory.GetFiles(picturesFolder);
+            // Data validation of every input file
+            string[] picturesList; // Array that contains the path of each file found in 'Pictures' folder.
+            List<InputData> dataList; // This list contains all lines in the 'Input_Data.txt' file.
+            HighlightParameters? highlightParameters; // Holds all JSON parameters that need highlight in the final document.
 
-            FileStreamOptions options = new()
-            {
-                Access = FileAccess.Read,
-                Mode = FileMode.Open,
-                Options = FileOptions.None
-            };
-
-            // List that will hold every line of the file.
-            List<InputData> dataList = Enumerable.Empty<InputData>().ToList();
-
-            // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
-            try
-            {
-                using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.Default, false, options))
-                {
-                    string fileLine;
-
-                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
-                    while ((fileLine = streamInputData.ReadLine()) != null)
-                    {
-                        string[] dataFields = fileLine.Split(';');
-
-                        InputData data = new ()
-                        {
-                            SectionNumber = int.Parse(dataFields[0]),
-                            SectionName = dataFields[1],
-                            MethodName = Regex.Replace(dataFields[2], "([A-Z])(?![A-Z])", " $1").ToUpper(), // Separates each word in the field.
-                            URL = dataFields[3],
-                            Request = dataFields[4],
-                            Response = dataFields[5]
-                        };
-
-                        dataList.Add(data);
-                    }
-                }
-            }
-            catch(IOException ioException)
-            {
-                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
-            }
-            catch (Exception exception)
-            {
-                PrintGenericErrorException(exception);
-            }
-
-            // Retrieving the parameters name list in the JSON file that the user wants to highlight in the document.
-            string highlightParametersJson = File.ReadAllText($"{baseFolder}\\HighlightParameters.json");
-            HighlightParameters? highlightParameters = JsonConvert.DeserializeObject<HighlightParameters>(highlightParametersJson);
+            InputFilesValidation(baseFolder, picturesFolder, out picturesList, out dataList, out highlightParameters);
 
             // Creating the .docx document
             using (XWPFDocument document = new())
@@ -124,11 +63,11 @@ namespace APITestDocumentCreator
 
                 int tempSectionNumber = 0;
 
-                foreach(InputData data in dataList)
+                foreach (InputData data in dataList)
                 {
-                    if(data.SectionNumber > tempSectionNumber)
+                    if (data.SectionNumber > tempSectionNumber)
                     {
-                        if(tempSectionNumber > 0)
+                        if (tempSectionNumber > 0)
                         {
                             // Adding a page break in every new section after the first one.
                             XWPFParagraph addBreak = document.CreateParagraph();
@@ -151,17 +90,17 @@ namespace APITestDocumentCreator
 
                         List<string> sectionPictures = new();
 
-                        foreach(string picture in picturesList)
+                        foreach (string picture in picturesList)
                         {
                             string pictureName = Path.GetFileNameWithoutExtension(picture);
 
-                            if(pictureName.StartsWith(data.SectionNumber.ToString()) == true)
+                            if (pictureName.StartsWith(data.SectionNumber.ToString()) == true)
                             {
                                 sectionPictures.Add(picture);
                             }
                         }
 
-                        if(sectionPictures.Count > 0)
+                        if (sectionPictures.Count > 0)
                         {
                             XWPFParagraph documentSectionPictures = document.CreateParagraph();
                             documentSectionPictures.Alignment = ParagraphAlignment.CENTER;
@@ -173,7 +112,7 @@ namespace APITestDocumentCreator
                             int widthEmus = widthCentimeters * 360000;
                             int heightEmus = heightCentimeters * 360000;
 
-                            foreach(string picPath in sectionPictures)
+                            foreach (string picPath in sectionPictures)
                             {
                                 XWPFRun pictureRun = documentSectionPictures.CreateRun();
 
@@ -313,10 +252,115 @@ namespace APITestDocumentCreator
                 }
 
                 // Create an docx. file and writes the document content into it
-                using (FileStream fs = new($"{resultFolder}\\API_Test_Document.docx", FileMode.Create, FileAccess.Write))
+                using (FileStream fs = new($"{resultFolder}\\{titleText}.docx", FileMode.Create, FileAccess.Write))
                 {
                     document.Write(fs);
                 }
+            }
+        }
+
+        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters)
+        {
+            Console.WriteLine("\n\n-- INPUT FILES VALIDATION --\n");
+
+            // Initializing key variables.
+            dataList = Enumerable.Empty<InputData>().ToList();
+            picturesList = [];
+            highlightParameters = new();
+
+            try
+            {
+                FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
+
+                // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
+                using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.UTF8, false, options))
+                {
+                    string fileLine;
+
+                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
+                    while ((fileLine = streamInputData.ReadLine()) != null)
+                    {
+                        string[] dataFields = fileLine.Split(';');
+
+                        InputData data = new()
+                        {
+                            SectionNumber = int.Parse(dataFields[0]),
+                            SectionName = dataFields[1],
+                            MethodName = Regex.Replace(dataFields[2], "([A-Z])(?![A-Z])", " $1").ToUpper(), // Separates each word in the field.
+                            URL = dataFields[3],
+                            Request = dataFields[4],
+                            Response = dataFields[5]
+                        };
+
+                        dataList.Add(data);
+                    }
+                }
+            }
+            catch (IOException ioException)
+            {
+                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
+            }
+            catch (Exception exception)
+            {
+                PrintGenericErrorException(exception);
+            }
+
+            // Check if the 'Input_Data.txt' file have any information, because the application won't work properly without it.
+            if (dataList.Count > 0)
+            {
+                Console.WriteLine($"[INFO] All {dataList.Count} lines in 'Input_Data.txt' was read by the application!");
+
+                // Retrieving all prints stored in the 'Pictures' folder.
+                picturesList = Directory.GetFiles(picturesFolder);
+
+                if(picturesList.Length > 0)
+                {
+                    Console.WriteLine($"[INFO] {dataList.Count} images were detected in the 'Pictures' folder!");
+                }
+                else
+                {
+                    Console.WriteLine($"[INFO] Nothing was found in the 'Pictures' folder!");
+                }
+
+                // Retrieving the parameters name list in the JSON file that the user wants to highlight in the document.
+                string highlightParametersJson = File.ReadAllText($"{baseFolder}\\HighlightParameters.json");
+                highlightParameters = JsonConvert.DeserializeObject<HighlightParameters>(highlightParametersJson);
+
+                if(highlightParameters.ParametersList.Length > 0)
+                {
+                    Console.WriteLine($"[INFO] {highlightParameters.ParametersList.Length} different parameters will be highlighted in the document!");
+                }
+                else
+                {
+                    Console.WriteLine($"[INFO] No highlight will be needed in the document");
+                }
+            }
+            else
+            {
+                Console.WriteLine("[INFO] No information was provided in the 'Input_Data.txt' file, the application can't progress without it!");
+                Environment.Exit(0);
+            }
+        }
+
+        private static void DocumentBasicInformation(out string? titleText, out string? documentAuthor)
+        {
+            Console.WriteLine("\n-- DOCUMENT PROPERTIES --\n");
+
+            // Registering the user input for document title.
+            Console.Write("> What is the title of the document? (The title will be the result file name)\nTitle: ");
+            titleText = Console.ReadLine();
+            while (titleText == "")
+            {
+                Console.Write("[INFO] The title can't be empty!\nTitle: ");
+                titleText = Console.ReadLine();
+            }
+
+            Console.Write("\n> What's the document's author name?\nAuthor: ");
+            documentAuthor = Console.ReadLine();
+            while (documentAuthor == "")
+            {
+                Console.Write("[INFO] The author's name can't be empty!\nAuthor: ");
+                documentAuthor = Console.ReadLine();
             }
         }
 
@@ -337,19 +381,22 @@ namespace APITestDocumentCreator
 
         private static void PrintGenericErrorException(Exception exception)
         {
-            Console.WriteLine($"[ERROR]: An error has occurred! See details below: \n{exception.Message}");
+            Console.WriteLine($"\n[ERROR]: An error has occurred! See details below: \n{exception.Message}");
         }
 
         private static void DataPatternApresentationAndVerification()
         {
-            Console.WriteLine("\n[INFO] Before reading the 'Input_Data.txt' file is important that the data inside it follows the pattern below, separated with semi-colon (;):");
-            Console.WriteLine("1) SECTION NUMBER: Section number in which all the input file will be showed in the document, if the section has more than one method put the same number but write in the order of appeareance.");
-            Console.WriteLine("2) METHOD NAME: Name of the API method that will appear in the document.");
-            Console.WriteLine("3) URL: What URL was used in the request?");
-            Console.WriteLine("4) REQUEST: JSON used in the request (don't need pre-formatting).");
-            Console.WriteLine("5) RESPONSE: JSON received in the response (don't need pre-formatting).");
+            Console.WriteLine("\n-- INPUT DATA EXPLANATION --\n");
 
-            Console.WriteLine("\n> Before you continue, check if there is data inside the input file.\nCan we proceed?");
+            Console.WriteLine("[INFO] Before the application read the 'Input_Data.txt' file is important that the data inside it follows the pattern below, separated with semi-colon (;):\n");
+            Console.WriteLine("1) SECTION NUMBER: Section number in which all the input file will be showed in the document, if the section has more than one method put the same number but write in the order of appeareance.");
+            Console.WriteLine("2) SECTION NAME: The name used to define the section, if more than one line has the same section number, the name must be the same.");
+            Console.WriteLine("3) METHOD NAME: Name of the API method that will appear in the document.");
+            Console.WriteLine("4) URL: What URL was used in the request?");
+            Console.WriteLine("5) REQUEST: JSON used in the request (don't need pre-formatting).");
+            Console.WriteLine("6) RESPONSE: JSON received in the response (don't need pre-formatting).");
+
+            Console.WriteLine("\n> Before you continue, check if there is data inside the input file and follows the pattern above.\nProceed?");
 
             bool patternDecisionLoop = true;
             while (patternDecisionLoop)
@@ -381,6 +428,7 @@ namespace APITestDocumentCreator
 
         private static void CreateApplicationBasicStructure(string baseFolder, string resultFolder, string picturesFolder)
         {
+            Console.WriteLine("-- BASIC APPLICATION STRUCTURE -- \n");
             try
             {
                 // Checking if the folder structure already exists.
@@ -390,10 +438,10 @@ namespace APITestDocumentCreator
                 }
                 else
                 {
-                    // Creating bot base and result folder in the same function.
+                    // Creating all basic folders.
                     Console.WriteLine($"[INFO] Creating basic folder strucutre in the following path: {baseFolder}");
-                    Directory.CreateDirectory($"{resultFolder}");
-                    Directory.CreateDirectory($"{picturesFolder}");
+                    Directory.CreateDirectory(resultFolder); // Here the application will create both base folder ande result.
+                    Directory.CreateDirectory(picturesFolder);
                 }
 
                 // Checking if the input file don't exists so we don't accidentally recreate the file and delete the data inside it.
