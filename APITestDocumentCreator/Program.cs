@@ -37,7 +37,7 @@ namespace APITestDocumentCreator
             // Creating the .docx document
             using (XWPFDocument document = new())
             {
-                // Document properties
+                // DOCUMENT PROPERTIES
                 POIXMLProperties properties = document.GetProperties();
 
                 NPOI.OpenXml4Net.OPC.Internal.PackagePropertiesPart underlyingProp = properties.CoreProperties.GetUnderlyingProperties();
@@ -46,23 +46,15 @@ namespace APITestDocumentCreator
                 NPOI.OpenXmlFormats.CT_ExtendedProperties extendedProp = properties.ExtendedProperties.GetUnderlyingProperties();
                 extendedProp.Application = "Microsoft Office Word";
 
-                // Document title
+                // DOCUMENT TITLE
                 XWPFParagraph titleParagraph = document.CreateParagraph();
-                titleParagraph.Alignment = ParagraphAlignment.CENTER;
-                titleParagraph.VerticalAlignment = TextAlignment.CENTER;
-                titleParagraph.BorderTop = Borders.Single;
-                titleParagraph.BorderLeft = Borders.Single;
-                titleParagraph.BorderRight = Borders.Single;
-                titleParagraph.BorderBottom = Borders.Single;
 
-                XWPFRun titleRun = titleParagraph.CreateRun();
-                titleRun.FontFamily = "Calibri";
-                titleRun.FontSize = 18;
-                titleRun.IsBold = true;
-                titleRun.SetText(titleText.ToUpper());
+                ParagraphStylizer(titleParagraph, ParagraphAlignment.CENTER, TextAlignment.CENTER, Borders.Single);
+                RunStylizer(titleParagraph, 18, titleText, true);
 
-                int tempSectionNumber = 0;
+                int tempSectionNumber = 0; // This counter will be used to track lines in 'Input_Data' that have the same section number.
 
+                // Writing in the document every line that the application read in the 'Input_Data'.
                 foreach (InputData data in dataList)
                 {
                     if (data.SectionNumber > tempSectionNumber)
@@ -75,21 +67,17 @@ namespace APITestDocumentCreator
                             addBreakRun.AddBreak(BreakType.PAGE);
                         }
 
-                        // Document section
+                        // DOCUMENT SECTION
                         XWPFParagraph documentSection = document.CreateParagraph();
-                        documentSection.Alignment = ParagraphAlignment.LEFT;
-                        documentSection.VerticalAlignment = TextAlignment.CENTER;
+                        ParagraphStylizer(documentSection, ParagraphAlignment.LEFT);
 
-                        XWPFRun documentSectionRun = documentSection.CreateRun();
-                        documentSectionRun.FontFamily = "Calibri";
-                        documentSectionRun.FontSize = 14;
-                        documentSectionRun.IsBold = true;
-                        documentSectionRun.Underline = UnderlinePatterns.Single;
-                        documentSectionRun.SetColor("44AE2F");
-                        documentSectionRun.SetText($"{data.SectionNumber} - {data.SectionName.ToUpper()}");
+                        string sectionText = $"{data.SectionNumber} - {data.SectionName.ToUpper()}";
+                        RunStylizer(documentSection, 14, sectionText, true, UnderlinePatterns.Single, "44AE2F");
 
+                        // SECTION PICTURES
                         List<string> sectionPictures = new();
 
+                        // In picturesList is save the full patch to every picture, so the application will retrieve only the name of the file.
                         foreach (string picture in picturesList)
                         {
                             string pictureName = Path.GetFileNameWithoutExtension(picture);
@@ -103,9 +91,9 @@ namespace APITestDocumentCreator
                         if (sectionPictures.Count > 0)
                         {
                             XWPFParagraph documentSectionPictures = document.CreateParagraph();
-                            documentSectionPictures.Alignment = ParagraphAlignment.CENTER;
-                            documentSectionPictures.VerticalAlignment = TextAlignment.CENTER;
+                            ParagraphStylizer(documentSectionPictures, ParagraphAlignment.CENTER);
 
+                            // Here we can define the image dimensions with ease, so the application will convert after (in EMUs (https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/)).
                             int widthCentimeters = 15;
                             int heightCentimeters = 10;
 
@@ -128,40 +116,23 @@ namespace APITestDocumentCreator
                         tempSectionNumber = data.SectionNumber;
                     }
 
-                    // This variables will help in the parts where we describe the request and response text
-                    string jsonWithIdentation;
-                    string[] separator = new[] { "\r\n", "\r", "\n" };
-                    string[] lines;
-
-                    // Endpoint request title
+                    // ENDPOINT REQUEST TITLE
                     XWPFParagraph endpointRequest = document.CreateParagraph();
-                    endpointRequest.Alignment = ParagraphAlignment.CENTER;
-                    endpointRequest.VerticalAlignment = TextAlignment.CENTER;
-                    endpointRequest.BorderTop = Borders.Single;
-                    endpointRequest.BorderLeft = Borders.Single;
-                    endpointRequest.BorderRight = Borders.Single;
-                    endpointRequest.BorderBottom = Borders.Single;
+                    ParagraphStylizer(endpointRequest, ParagraphAlignment.CENTER, TextAlignment.CENTER, Borders.Single);
 
-                    XWPFRun endpointRequestRun = endpointRequest.CreateRun();
-                    endpointRequestRun.FontFamily = "Calibri";
-                    endpointRequestRun.FontSize = 12;
-                    endpointRequestRun.IsBold = true;
-                    endpointRequestRun.SetColor("297FC2");
-                    endpointRequestRun.SetText($"REQUISIÇÃO - {data.MethodName}");
+                    string endpointRequestText = $"REQUISIÇÃO - {data.MethodName.ToUpper()}";
+                    RunStylizer(endpointRequest, 12, endpointRequestText, true, UnderlinePatterns.None, "297FC2");
 
-                    // Endpoint URL used in the request.
+                    // ENDPOINT REQUEST TITLE - URL USED
                     XWPFParagraph endpointRequestURL = document.CreateParagraph();
-                    endpointRequestURL.Alignment = ParagraphAlignment.LEFT;
-                    endpointRequestURL.VerticalAlignment = TextAlignment.CENTER;
+                    ParagraphStylizer(endpointRequestURL);
 
-                    XWPFRun endpointRequestURLRun = endpointRequestURL.CreateRun();
-                    endpointRequestURLRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
-                    endpointRequestURLRun.FontSize = 10;
-                    endpointRequestURLRun.SetText($"URL: {data.URL}");
+                    string URLText = $"URL: {data.URL}";
+                    RunStylizer(endpointRequestURL, 10,  URLText);
 
-                    // Endpoint JSON request
+                    // ENDPOINT REQUEST - JSON TEXT
                     XWPFParagraph endpointRequestJSON = document.CreateParagraph();
-                    endpointRequestJSON.Alignment = ParagraphAlignment.LEFT;
+                    ParagraphStylizer(endpointRequestJSON);
 
                     XWPFRun endpointRequestJSONRun = endpointRequestJSON.CreateRun();
                     endpointRequestJSONRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
@@ -176,79 +147,24 @@ namespace APITestDocumentCreator
                     else
                     {
                         endpointRequestJSONRun.SetText($"BODY:");
-
-                        jsonWithIdentation = PrettyJson(jsonRequestText); // Formatting the JSON
-                        lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
-
-                        // Create a paragraph within the cell for each line of the JSON content
-                        foreach (string line in lines)
-                        {
-                            XWPFParagraph endpointJSON = document.CreateParagraph();
-
-                            XWPFRun run = endpointJSON.CreateRun();
-                            run.SetText(line);
-                            run.FontFamily = "Calibri"; // Set font to maintain preformatted style
-                            run.FontSize = 10;
-
-                            // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
-                            // to a JSON list created and populated by the user.
-                            HighlightRun(highlightParameters, line, run);
-
-                            // Set indentation to mimic JSON structure
-                            int indentationLevel = GetIndentationLevel(line);
-                            for (int i = 0; i < indentationLevel; i++)
-                            {
-                                endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
-                            }
-                        }
+                        JSONFormatter(highlightParameters, document, jsonRequestText);
                     }
 
-                    // Endpoint response title
+                    // ENDPOINT RESPONSE TITLE
                     XWPFParagraph endpointResponse = document.CreateParagraph();
-                    endpointResponse.Alignment = ParagraphAlignment.CENTER;
-                    endpointResponse.VerticalAlignment = TextAlignment.CENTER;
-                    endpointResponse.BorderTop = Borders.Single;
-                    endpointResponse.BorderLeft = Borders.Single;
-                    endpointResponse.BorderRight = Borders.Single;
-                    endpointResponse.BorderBottom = Borders.Single;
+                    ParagraphStylizer(endpointResponse, ParagraphAlignment.CENTER, TextAlignment.CENTER, Borders.Single);
 
-                    XWPFRun endpointResponseRun = endpointResponse.CreateRun();
-                    endpointResponseRun.FontFamily = "Calibri";
-                    endpointResponseRun.FontSize = 12;
-                    endpointResponseRun.IsBold = true;
-                    endpointResponseRun.SetColor("ff0000");
-                    endpointResponseRun.SetText($"RESPOSTA - {data.MethodName}");
+                    string responseTitleText = $"RESPOSTA - {data.MethodName.ToUpper()}";
+                    RunStylizer(endpointResponse, 12, responseTitleText, true, UnderlinePatterns.None, "FF0000");
 
-                    // Endpoint JSON response
+                    // ENDPOINT RESPONSE - JSON TEXT
                     XWPFRun endpointResponseJSONRun = endpointResponse.CreateRun();
                     endpointResponseJSONRun.FontFamily = "Calibri"; // Set font to maintain preformatted style
                     endpointResponseJSONRun.FontSize = 10;
 
                     string jsonResponseText = data.Response;
-                    jsonWithIdentation = PrettyJson(jsonResponseText); // Formatting the JSON
-                    lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
 
-                    // Create a paragraph within the cell for each line of the JSON content
-                    foreach (string line in lines)
-                    {
-                        XWPFParagraph endpointJSON = document.CreateParagraph();
-
-                        XWPFRun run = endpointJSON.CreateRun();
-                        run.SetText(line);
-                        run.FontFamily = "Calibri"; // Set font to maintain preformatted style
-                        run.FontSize = 10;
-
-                        // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
-                        // to a JSON list created and populated by the user.
-                        HighlightRun(highlightParameters, line, run);
-
-                        // Set indentation to mimic JSON structure
-                        int indentationLevel = GetIndentationLevel(line);
-                        for (int i = 0; i < indentationLevel; i++)
-                        {
-                            endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
-                        }
-                    }
+                    JSONFormatter(highlightParameters, document, jsonResponseText);
                 }
 
                 // Create an docx. file and writes the document content into it
@@ -257,6 +173,60 @@ namespace APITestDocumentCreator
                     document.Write(fs);
                 }
             }
+        }
+
+        private static void JSONFormatter(HighlightParameters? highlightParameters, XWPFDocument document, string jsonText)
+        {
+            // This variables will help in the parts where we describe the request and response text
+            string jsonWithIdentation;
+            string[] separator = new[] { "\r\n", "\r", "\n" };
+            string[] lines;
+
+            jsonWithIdentation = PrettyJson(jsonText); // Formatting the JSON
+            lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
+
+            // Create a paragraph within the cell for each line of the JSON content
+            foreach (string line in lines)
+            {
+                XWPFParagraph endpointJSON = document.CreateParagraph();
+
+                XWPFRun run = endpointJSON.CreateRun();
+                run.SetText(line);
+                run.FontFamily = "Calibri"; // Set font to maintain preformatted style
+                run.FontSize = 10;
+
+                // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
+                // to a JSON list created and populated by the user.
+                HighlightRun(highlightParameters, line, run);
+
+                // Set indentation to mimic JSON structure
+                int indentationLevel = GetIndentationLevel(line);
+                for (int i = 0; i < indentationLevel; i++)
+                {
+                    endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
+                }
+            }
+        }
+
+        private static void ParagraphStylizer(XWPFParagraph paragraph, ParagraphAlignment paragraphAlignment = ParagraphAlignment.LEFT, TextAlignment textAlignment = TextAlignment.CENTER, Borders borderStyle = Borders.None)
+        {
+            paragraph.Alignment = paragraphAlignment;
+            paragraph.VerticalAlignment = textAlignment;
+            paragraph.BorderTop = borderStyle;
+            paragraph.BorderLeft = borderStyle;
+            paragraph.BorderRight = borderStyle;
+            paragraph.BorderBottom = borderStyle;
+        }
+
+        private static void RunStylizer(XWPFParagraph paragraph, int fontSize, string printText, bool bold = false, UnderlinePatterns underline = UnderlinePatterns.None, string color = "000000", string fontFamily = "Calibri")
+        {
+            XWPFRun run = paragraph.CreateRun();
+            run.FontFamily = fontFamily;
+            run.FontSize = fontSize;
+            run.IsBold = bold;
+            run.Underline = underline;
+            run.SetColor(color);
+            run.SetText(printText);
         }
 
         private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters)
@@ -497,7 +467,7 @@ namespace APITestDocumentCreator
         }
     }
 
-    // Auxiliary class to be able to serialize the JSON
+    // Auxiliary classes to be able to serialize the JSON
     public class InputData()
     {
         public int SectionNumber { get; set; }
