@@ -31,8 +31,9 @@ namespace APITestDocumentCreator
             string[] picturesList; // Array that contains the path of each file found in 'Pictures' folder.
             List<InputData> dataList; // This list contains all lines in the 'Input_Data.txt' file.
             HighlightParameters? highlightParameters; // Holds all JSON parameters that need highlight in the final document.
+            List<SectionProperties> sectionList; // List that will inform all properties of each section of the document.
 
-            InputFilesValidation(baseFolder, picturesFolder, out picturesList, out dataList, out highlightParameters);
+            InputFilesValidation(baseFolder, picturesFolder, out picturesList, out dataList, out highlightParameters, out sectionList);
 
             // Creating the .docx document
             using (XWPFDocument document = new())
@@ -50,7 +51,7 @@ namespace APITestDocumentCreator
                 XWPFParagraph titleParagraph = document.CreateParagraph();
 
                 ParagraphStylizer(titleParagraph, ParagraphAlignment.CENTER, TextAlignment.CENTER, Borders.Single);
-                RunStylizer(titleParagraph, 18, titleText, true);
+                RunStylizer(titleParagraph, 18, titleText.ToUpper(), true);
 
                 int tempSectionNumber = 0; // This counter will be used to track lines in 'Input_Data' that have the same section number.
 
@@ -111,6 +112,18 @@ namespace APITestDocumentCreator
 
                                 pictureRun.AddCarriageReturn();
                             }
+                        }
+
+                        // SECTION DESCRIPTION
+                        SectionProperties sectionNow = sectionList.SingleOrDefault(section => section.SectionNumber.Equals(tempSectionNumber + 1));
+
+                        if (sectionNow != null)
+                        {
+                            XWPFParagraph sectionDescription = document.CreateParagraph();
+                            ParagraphStylizer(sectionDescription, ParagraphAlignment.BOTH);
+
+                            string sectionDescriptionText = $"Descrição: {sectionNow.Description}";
+                            RunStylizer(sectionDescription, 10, sectionDescriptionText, false, UnderlinePatterns.None, "000000", "Calibri", true);
                         }
 
                         tempSectionNumber = data.SectionNumber;
@@ -218,30 +231,32 @@ namespace APITestDocumentCreator
             paragraph.BorderBottom = borderStyle;
         }
 
-        private static void RunStylizer(XWPFParagraph paragraph, int fontSize, string printText, bool bold = false, UnderlinePatterns underline = UnderlinePatterns.None, string color = "000000", string fontFamily = "Calibri")
+        private static void RunStylizer(XWPFParagraph paragraph, int fontSize, string printText, bool bold = false, UnderlinePatterns underline = UnderlinePatterns.None, string color = "000000", string fontFamily = "Calibri", bool italic = false)
         {
             XWPFRun run = paragraph.CreateRun();
             run.FontFamily = fontFamily;
             run.FontSize = fontSize;
             run.IsBold = bold;
             run.Underline = underline;
+            run.IsItalic = italic;
             run.SetColor(color);
             run.SetText(printText);
         }
 
-        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters)
+        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters, out List<SectionProperties> sectionList)
         {
             Console.WriteLine("\n\n-- INPUT FILES VALIDATION --\n");
 
             // Initializing key variables.
             dataList = Enumerable.Empty<InputData>().ToList();
+            sectionList = Enumerable.Empty<SectionProperties>().ToList();
             picturesList = [];
             highlightParameters = new();
 
+            FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
+
             try
             {
-                FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
-
                 // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
                 using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.UTF8, false, options))
                 {
@@ -279,6 +294,38 @@ namespace APITestDocumentCreator
             if (dataList.Count > 0)
             {
                 Console.WriteLine($"[INFO] All {dataList.Count} lines in 'Input_Data.txt' was read by the application!");
+
+                try
+                {
+                    // Every line of the file will be transformed in a instance of SectionProperties so the values can be accessed as a parameter.
+                    using (StreamReader streamSectionFile = new($"{baseFolder}\\Section_Information.txt", Encoding.UTF8, false, options))
+                    {
+                        string sectionFileLine;
+
+                        // Each line is stored inside the 'fileLine' variable so it can be analyzed.
+                        while ((sectionFileLine = streamSectionFile.ReadLine()) != null)
+                        {
+                            string[] sectionProperties = sectionFileLine.Split(';');
+
+                            SectionProperties section = new()
+                            {
+                                SectionNumber = int.Parse(sectionProperties[0]),
+                                SectionTitle = sectionProperties[1],
+                                Description = sectionProperties[2]
+                            };
+
+                            sectionList.Add(section);
+                        }
+                    }
+                }
+                catch (IOException ioException)
+                {
+                    Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
+                }
+                catch (Exception exception)
+                {
+                    PrintGenericErrorException(exception);
+                }
 
                 // Retrieving all prints stored in the 'Pictures' folder.
                 picturesList = Directory.GetFiles(picturesFolder);
@@ -435,6 +482,17 @@ namespace APITestDocumentCreator
                 {
                     Console.WriteLine($"[INFO] Highlight file already exist, please put the parameter names in it!");
                 }
+
+                // This file will contain information about the section in the document (number, title and description)
+                if (!File.Exists($"{baseFolder}\\Section_Information.txt"))
+                {
+                    File.Create($"{baseFolder}\\Section_Information.txt").Close();
+                    Console.WriteLine($"[INFO] Section data file 'Section_Information.txt' has been created inside the folder");
+                }
+                else
+                {
+                    Console.WriteLine($"[INFO] Section data file already exist, please put the number, title and description of each section in the document!");
+                }
             }
             catch (Exception exception)
             {
@@ -481,5 +539,12 @@ namespace APITestDocumentCreator
     public class HighlightParameters()
     {
         public string[] ParametersList { get; set; }
+    }
+
+    public class SectionProperties()
+    {
+        public int SectionNumber {get; set; }
+        public string SectionTitle { get; set; }
+        public string Description { get; set; }
     }
 }
