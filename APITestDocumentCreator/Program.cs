@@ -60,6 +60,9 @@ namespace APITestDocumentCreator
                 {
                     if (data.SectionNumber > tempSectionNumber)
                     {
+                        // Veryifing section properties based on the tempSectionNumber so we can use later.
+                        SectionProperties sectionNow = sectionList.SingleOrDefault(section => section.SectionNumber.Equals(tempSectionNumber + 1));
+
                         if (tempSectionNumber > 0)
                         {
                             // Adding a page break in every new section after the first one.
@@ -68,11 +71,11 @@ namespace APITestDocumentCreator
                             addBreakRun.AddBreak(BreakType.PAGE);
                         }
 
-                        // DOCUMENT SECTION
+                        // SECTION TITLE
                         XWPFParagraph documentSection = document.CreateParagraph();
                         ParagraphStylizer(documentSection, ParagraphAlignment.LEFT);
 
-                        string sectionText = $"{data.SectionNumber} - {data.SectionName.ToUpper()}";
+                        string sectionText = $"{sectionNow.SectionNumber} - {sectionNow.SectionTitle.ToUpper()}";
                         RunStylizer(documentSection, 14, sectionText, true, UnderlinePatterns.Single, "44AE2F");
 
                         // SECTION PICTURES
@@ -115,7 +118,6 @@ namespace APITestDocumentCreator
                         }
 
                         // SECTION DESCRIPTION
-                        SectionProperties sectionNow = sectionList.SingleOrDefault(section => section.SectionNumber.Equals(tempSectionNumber + 1));
 
                         if (sectionNow != null)
                         {
@@ -270,11 +272,10 @@ namespace APITestDocumentCreator
                         InputData data = new()
                         {
                             SectionNumber = int.Parse(dataFields[0]),
-                            SectionName = dataFields[1],
-                            MethodName = Regex.Replace(dataFields[2], "([A-Z])(?![A-Z])", " $1").ToUpper(), // Separates each word in the field.
-                            URL = dataFields[3],
-                            Request = dataFields[4],
-                            Response = dataFields[5]
+                            MethodName = Regex.Replace(dataFields[1], "([A-Z])(?![A-Z])", " $1").ToUpper(), // Separates each word in the field.
+                            URL = dataFields[2],
+                            Request = dataFields[3],
+                            Response = dataFields[4]
                         };
 
                         dataList.Add(data);
@@ -529,7 +530,6 @@ namespace APITestDocumentCreator
     public class InputData()
     {
         public int SectionNumber { get; set; }
-        public string SectionName { get; set; }
         public string MethodName { get; set; }
         public string URL { get; set; }
         public string Request { get; set; }
