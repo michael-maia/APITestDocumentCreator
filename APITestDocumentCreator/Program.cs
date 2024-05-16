@@ -85,8 +85,9 @@ namespace APITestDocumentCreator
                         foreach (string picture in picturesList)
                         {
                             string pictureName = Path.GetFileNameWithoutExtension(picture);
+                            string[] pictureNameParts = pictureName.Split('_');
 
-                            if (pictureName.StartsWith(data.SectionNumber.ToString()) == true)
+                            if (pictureNameParts[0].Equals(data.SectionNumber.ToString()) == true)
                             {
                                 sectionPictures.Add(picture);
                             }
