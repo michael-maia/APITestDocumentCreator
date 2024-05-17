@@ -466,7 +466,7 @@ namespace APITestDocumentCreator
                 // Checking if the input file don't exists so we don't accidentally recreate the file and delete the data inside it.
                 if (!File.Exists($"{baseFolder}\\Input_Data.txt"))
                 {
-                    File.Create($"{baseFolder}\\Input_Data.txt").Close();
+                    File.WriteAllText($"{baseFolder}\\Input_Data.txt", "", Encoding.UTF8);
                     Console.WriteLine($"[INFO] Input file 'Input_Data.txt' has been created inside the folder");
                 }
                 else
@@ -477,7 +477,7 @@ namespace APITestDocumentCreator
                 // Here the application will verify if the highlight file don't exists and if is true another one will be created.
                 if (!File.Exists($"{baseFolder}\\HighlightParameters.json"))
                 {
-                    File.Create($"{baseFolder}\\HighlightParameters.json").Close();
+                    File.WriteAllText($"{baseFolder}\\HighlightParameters.json", "", Encoding.UTF8);
                     Console.WriteLine($"[INFO] Highlight file 'HighlightParameters.json' has been created inside the folder");
                 }
                 else
@@ -488,7 +488,7 @@ namespace APITestDocumentCreator
                 // This file will contain information about the section in the document (number, title and description)
                 if (!File.Exists($"{baseFolder}\\Section_Information.txt"))
                 {
-                    File.Create($"{baseFolder}\\Section_Information.txt").Close();
+                    File.WriteAllText($"{baseFolder}\\HighlightParameters.json", "", Encoding.UTF8);
                     Console.WriteLine($"[INFO] Section data file 'Section_Information.txt' has been created inside the folder");
                 }
                 else
