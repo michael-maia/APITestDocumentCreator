@@ -119,7 +119,6 @@ namespace APITestDocumentCreator
                         }
 
                         // SECTION DESCRIPTION
-
                         if (sectionNow.Description.Trim() != "")
                         {
                             XWPFParagraph sectionDescription = document.CreateParagraph();
@@ -191,262 +190,6 @@ namespace APITestDocumentCreator
             }
         }
 
-        private static void JSONFormatter(HighlightParameters? highlightParameters, XWPFDocument document, string jsonText)
-        {
-            // This variables will help in the parts where we describe the request and response text
-            string jsonWithIdentation;
-            string[] separator = new[] { "\r\n", "\r", "\n" };
-            string[] lines;
-
-            jsonWithIdentation = PrettyJson(jsonText); // Formatting the JSON
-            lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
-
-            // Create a paragraph within the cell for each line of the JSON content
-            foreach (string line in lines)
-            {
-                XWPFParagraph endpointJSON = document.CreateParagraph();
-
-                XWPFRun run = endpointJSON.CreateRun();
-                run.SetText(line);
-                run.FontFamily = "Calibri"; // Set font to maintain preformatted style
-                run.FontSize = 10;
-
-                // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
-                // to a JSON list created and populated by the user.
-                HighlightRun(highlightParameters, line, run);
-
-                // Set indentation to mimic JSON structure
-                int indentationLevel = GetIndentationLevel(line);
-                for (int i = 0; i < indentationLevel; i++)
-                {
-                    endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
-                }
-            }
-        }
-
-        private static void ParagraphStylizer(XWPFParagraph paragraph, ParagraphAlignment paragraphAlignment = ParagraphAlignment.LEFT, TextAlignment textAlignment = TextAlignment.CENTER, Borders borderStyle = Borders.None)
-        {
-            paragraph.Alignment = paragraphAlignment;
-            paragraph.VerticalAlignment = textAlignment;
-            paragraph.BorderTop = borderStyle;
-            paragraph.BorderLeft = borderStyle;
-            paragraph.BorderRight = borderStyle;
-            paragraph.BorderBottom = borderStyle;
-        }
-
-        private static void RunStylizer(XWPFParagraph paragraph, int fontSize, string printText, bool bold = false, UnderlinePatterns underline = UnderlinePatterns.None, string color = "000000", string fontFamily = "Calibri", bool italic = false)
-        {
-            XWPFRun run = paragraph.CreateRun();
-            run.FontFamily = fontFamily;
-            run.FontSize = fontSize;
-            run.IsBold = bold;
-            run.Underline = underline;
-            run.IsItalic = italic;
-            run.SetColor(color);
-            run.SetText(printText);
-        }
-
-        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters, out List<SectionProperties> sectionList)
-        {
-            Console.WriteLine("\n\n-- INPUT FILES VALIDATION --\n");
-
-            // Initializing key variables.
-            dataList = Enumerable.Empty<InputData>().ToList();
-            sectionList = Enumerable.Empty<SectionProperties>().ToList();
-            picturesList = [];
-            highlightParameters = new();
-
-            FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
-
-            try
-            {
-                // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
-                using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.UTF8, false, options))
-                {
-                    string fileLine;
-
-                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
-                    while ((fileLine = streamInputData.ReadLine()) != null)
-                    {
-                        string[] dataFields = fileLine.Split(';');
-
-                        InputData data = new()
-                        {
-                            SectionNumber = int.Parse(dataFields[0]),
-                            MethodName = Regex.Replace(dataFields[1], "([A-Z])(?![A-Z])", " $1").ToUpper(), // Separates each word in the field.
-                            URL = dataFields[2],
-                            Request = dataFields[3],
-                            Response = dataFields[4]
-                        };
-
-                        dataList.Add(data);
-                    }
-                }
-            }
-            catch (IOException ioException)
-            {
-                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
-            }
-            catch (Exception exception)
-            {
-                PrintGenericErrorException(exception);
-            }
-
-            // Check if the 'Input_Data.txt' file have any information, because the application won't work properly without it.
-            if (dataList.Count > 0)
-            {
-                Console.WriteLine($"[INFO] All {dataList.Count} lines in 'Input_Data.txt' was read by the application!");
-
-                try
-                {
-                    // Every line of the file will be transformed in a instance of SectionProperties so the values can be accessed as a parameter.
-                    using (StreamReader streamSectionFile = new($"{baseFolder}\\Section_Information.txt", Encoding.UTF8, false, options))
-                    {
-                        string sectionFileLine;
-
-                        // Each line is stored inside the 'fileLine' variable so it can be analyzed.
-                        while ((sectionFileLine = streamSectionFile.ReadLine()) != null)
-                        {
-                            string[] sectionProperties = sectionFileLine.Split(';');
-
-                            SectionProperties section = new()
-                            {
-                                SectionNumber = int.Parse(sectionProperties[0]),
-                                SectionTitle = sectionProperties[1],
-                                Description = sectionProperties[2]
-                            };
-
-                            sectionList.Add(section);
-                        }
-                    }
-                }
-                catch (IOException ioException)
-                {
-                    Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
-                }
-                catch (Exception exception)
-                {
-                    PrintGenericErrorException(exception);
-                }
-
-                // Retrieving all prints stored in the 'Pictures' folder.
-                picturesList = Directory.GetFiles(picturesFolder);
-
-
-                if (picturesList.Length > 0)
-                {
-                    Console.WriteLine($"[INFO] {dataList.Count} images were detected in the 'Pictures' folder!");
-                }
-                else
-                {
-                    Console.WriteLine($"[INFO] Nothing was found in the 'Pictures' folder!");
-                }
-
-                // Retrieving the parameters name list in the .txt file that the user wants to highlight in the document.
-                string highlightFile = File.ReadAllText($"{baseFolder}\\HighlightParameters.txt");
-                string[] highlightSplit = highlightFile.Split("\n");
-                highlightParameters.ParametersList = highlightSplit;
-
-                if (highlightParameters.ParametersList.Length > 0)
-                {
-                    Console.WriteLine($"[INFO] {highlightParameters.ParametersList.Length} different parameters will be highlighted in the document!");
-                }
-                else
-                {
-                    Console.WriteLine($"[INFO] No highlight will be needed in the document");
-                }
-            }
-            else
-            {
-                Console.WriteLine("[INFO] No information was provided in the 'Input_Data.txt' file, the application can't progress without it!");
-                Environment.Exit(0);
-            }
-        }
-
-        private static void DocumentBasicInformation(out string? titleText, out string? documentAuthor)
-        {
-            Console.WriteLine("\n-- DOCUMENT PROPERTIES --\n");
-
-            // Registering the user input for document title.
-            Console.Write("> What is the title of the document? (The title will be the result file name)\nTitle: ");
-            titleText = Console.ReadLine();
-            while (titleText == "")
-            {
-                Console.Write("[INFO] The title can't be empty!\nTitle: ");
-                titleText = Console.ReadLine();
-            }
-
-            Console.Write("\n> What's the document's author name?\nAuthor: ");
-            documentAuthor = Console.ReadLine();
-            while (documentAuthor == "")
-            {
-                Console.Write("[INFO] The author's name can't be empty!\nAuthor: ");
-                documentAuthor = Console.ReadLine();
-            }
-        }
-
-        private static void HighlightRun(HighlightParameters highlightParameters, string line, XWPFRun run)
-        {
-            string[] parameterKeyValue = line.Split(':');
-            string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
-            bool highlightCondition = Array.Exists(highlightParameters.ParametersList, name => name.Equals(adjustedParameterName));
-
-            if (highlightCondition == true)
-            {
-                run.GetCTR().AddNewRPr().highlight = new CT_Highlight
-                {
-                    val = ST_HighlightColor.yellow
-                };
-            }
-        }
-
-        private static void PrintGenericErrorException(Exception exception)
-        {
-            Console.WriteLine($"\n[ERROR]: An error has occurred! See details below: \n{exception.Message}");
-        }
-
-        private static void DataPatternApresentationAndVerification()
-        {
-            Console.WriteLine("\n-- INPUT DATA EXPLANATION --\n");
-
-            Console.WriteLine("[INFO] Before the application read the 'Input_Data.txt' file is important that the data inside it follows the pattern below, separated with semi-colon (;):\n");
-            Console.WriteLine("1) SECTION NUMBER: Section number in which all the input file will be showed in the document, if the section has more than one method put the same number but write in the order of appeareance.");
-            Console.WriteLine("2) SECTION NAME: The name used to define the section, if more than one line has the same section number, the name must be the same.");
-            Console.WriteLine("3) METHOD NAME: Name of the API method that will appear in the document.");
-            Console.WriteLine("4) URL: What URL was used in the request?");
-            Console.WriteLine("5) REQUEST: JSON used in the request (don't need pre-formatting).");
-            Console.WriteLine("6) RESPONSE: JSON received in the response (don't need pre-formatting).");
-
-            Console.WriteLine("\n> Before you continue, check if there is data inside the input file and follows the pattern above.\nProceed?");
-
-            bool patternDecisionLoop = true;
-            while (patternDecisionLoop)
-            {
-                Console.Write("\n- Type '1' if it's OK\n- Type '2' to exit application\nResponse: ");
-                ConsoleKeyInfo patternDecision = Console.ReadKey();
-
-                switch (patternDecision.Key)
-                {
-                    case ConsoleKey.NumPad1:
-                        patternDecisionLoop = false;
-                        break;
-                    case ConsoleKey.D1:
-                        patternDecisionLoop = false;
-                        break;
-                    case ConsoleKey.NumPad2:
-                        Console.WriteLine("\n\n[INFO] Exiting application...");
-                        Environment.Exit(0);
-                        break;
-                    case ConsoleKey.D2:
-                        Console.WriteLine("\n\n[INFO] Exiting application...");
-                        Environment.Exit(0);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
         private static void CreateApplicationBasicStructure(string baseFolder, string resultFolder, string picturesFolder)
         {
             Console.WriteLine("-- BASIC APPLICATION STRUCTURE -- \n");
@@ -504,13 +247,263 @@ namespace APITestDocumentCreator
             }
         }
 
+        private static void DocumentBasicInformation(out string? titleText, out string? documentAuthor)
+        {
+            Console.WriteLine("\n-- DOCUMENT PROPERTIES --\n");
+
+            // Registering the user input for document title.
+            Console.Write("> What is the title of the document? (The title will be the result file name)\nTitle: ");
+            titleText = Console.ReadLine();
+            while (titleText == "")
+            {
+                Console.Write("[INFO] The title can't be empty!\nTitle: ");
+                titleText = Console.ReadLine();
+            }
+
+            Console.Write("\n> What's the document's author name?\nAuthor: ");
+            documentAuthor = Console.ReadLine();
+            while (documentAuthor == "")
+            {
+                Console.Write("[INFO] The author's name can't be empty!\nAuthor: ");
+                documentAuthor = Console.ReadLine();
+            }
+        }
+
+        private static void DataPatternApresentationAndVerification()
+        {
+            Console.WriteLine("\n-- INPUT DATA EXPLANATION --\n");
+
+            Console.WriteLine("[INFO] Before the application read the 'Input_Data.txt' file is important that the data inside it follows the pattern below, separated with semi-colon (;):\n");
+            Console.WriteLine("1) SECTION NUMBER: Section number in which all the input file will be showed in the document, if the section has more than one method put the same number but write in the order of appeareance.");
+            Console.WriteLine("2) SECTION NAME: The name used to define the section, if more than one line has the same section number, the name must be the same.");
+            Console.WriteLine("3) METHOD NAME: Name of the API method that will appear in the document.");
+            Console.WriteLine("4) URL: What URL was used in the request?");
+            Console.WriteLine("5) REQUEST: JSON used in the request (don't need pre-formatting).");
+            Console.WriteLine("6) RESPONSE: JSON received in the response (don't need pre-formatting).");
+
+            Console.WriteLine("\n> Before you continue, check if there is data inside the input file and follows the pattern above.\nProceed?");
+
+            bool patternDecisionLoop = true;
+            while (patternDecisionLoop)
+            {
+                Console.Write("\n- Type '1' if it's OK\n- Type '2' to exit application\nResponse: ");
+                ConsoleKeyInfo patternDecision = Console.ReadKey();
+
+                switch (patternDecision.Key)
+                {
+                    case ConsoleKey.NumPad1:
+                        patternDecisionLoop = false;
+                        break;
+                    case ConsoleKey.D1:
+                        patternDecisionLoop = false;
+                        break;
+                    case ConsoleKey.NumPad2:
+                        Console.WriteLine("\n\n[INFO] Exiting application...");
+                        Environment.Exit(0);
+                        break;
+                    case ConsoleKey.D2:
+                        Console.WriteLine("\n\n[INFO] Exiting application...");
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters, out List<SectionProperties> sectionList)
+        {
+            Console.WriteLine("\n\n-- INPUT FILES VALIDATION --\n");
+
+            // Initializing key variables.
+            dataList = Enumerable.Empty<InputData>().ToList();
+            sectionList = Enumerable.Empty<SectionProperties>().ToList();
+            picturesList = [];
+            highlightParameters = new();
+
+            FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
+
+            try
+            {
+                // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
+                using (StreamReader streamInputData = new($"{baseFolder}\\Input_Data.txt", Encoding.UTF8, false, options))
+                {
+                    string fileLine;
+                    int inputFileLineCounter = 1;
+                    int inputFileSectionNumber = 0;
+
+                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
+                    while ((fileLine = streamInputData.ReadLine()) != null)
+                    {
+                        string[] dataFields = fileLine.Split(';');
+
+                        // Some field validations before proceed with the creation of the document.
+                        if (dataFields.Any(field => field.Trim().Equals("")) == true)
+                        {
+                            Console.WriteLine($"[ERROR | LINE {inputFileLineCounter}] One of the fields in this line are empty in the file 'Input_Data.txt'! All field are required for the document, check all lines on the file and run the application again.");
+                            Environment.Exit(0);
+                        }
+                        else if (int.TryParse(dataFields[0], out inputFileSectionNumber) == false)
+                        {
+                            Console.WriteLine($"[ERROR | LINE {inputFileLineCounter}] The first field of the line must be a INTEGER NUMBER, check all lines on the file 'Input_Data.txt' and run the application again.");
+                            Environment.Exit(0);
+                        }
+
+                        string methodNameWithoutSpaces = dataFields[1].Replace(" ", ""); // Remove all spaces so the Regex logic always works.
+
+                        InputData data = new()
+                        {
+                            SectionNumber = inputFileSectionNumber,
+                            MethodName = Regex.Replace(methodNameWithoutSpaces, "([A-Z])(?![A-Z])", " $1").ToUpper().TrimStart(), // Separates each word in the field.
+                            URL = dataFields[2],
+                            Request = dataFields[3],
+                            Response = dataFields[4]
+                        };
+
+                        dataList.Add(data);
+                        inputFileLineCounter++;
+                    }
+                }
+            }
+            catch (IOException ioException)
+            {
+                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
+            }
+            catch (Exception exception)
+            {
+                PrintGenericErrorException(exception);
+            }
+
+            Console.WriteLine($"[INFO] All {dataList.Count} lines in 'Input_Data.txt' was read by the application!");
+
+            try
+            {
+                // Every line of the file will be transformed in a instance of SectionProperties so the values can be accessed as a parameter.
+                using (StreamReader streamSectionFile = new($"{baseFolder}\\Section_Information.txt", Encoding.UTF8, false, options))
+                {
+                    string sectionFileLine;
+                    int sectionFileLineCounter = 1;
+                    int sectionNumber = 0;
+
+                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
+                    while ((sectionFileLine = streamSectionFile.ReadLine()) != null)
+                    {
+                        string[] sectionProperties = sectionFileLine.Split(';');
+
+                        // Some field validations before proceed with the creation of the document.
+                        if (sectionProperties[0].Trim() == "" || sectionProperties[1].Trim() == "")
+                        {
+                            Console.WriteLine($"\n[ERROR | LINE {sectionFileLineCounter}] Section Number and / or Section Title on file 'Section_Information.txt' are empty and both are need for the application! Check all lines on the file and run the application again.");
+                            Environment.Exit(0);
+                        }
+                        else if (int.TryParse(sectionProperties[0], out sectionNumber) == false)
+                        {
+                            Console.WriteLine($"\n[ERROR | LINE {sectionNumber}] The first field of the line must be a INTEGER NUMBER, check all lines on the file 'Section_Information.txt' and run the application again.");
+                            Environment.Exit(0);
+                        }
+
+                        SectionProperties section = new()
+                        {
+                            SectionNumber = sectionNumber,
+                            SectionTitle = sectionProperties[1],
+                            Description = sectionProperties[2]
+                        };
+
+                        sectionList.Add(section);
+                        sectionFileLineCounter++;
+                    }
+                }
+            }
+            catch (IOException ioException)
+            {
+                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
+            }
+            catch (Exception exception)
+            {
+                PrintGenericErrorException(exception);
+            }
+
+            // Retrieving all prints stored in the 'Pictures' folder.
+            picturesList = Directory.GetFiles(picturesFolder);
+
+            if (picturesList.Length > 0)
+            {
+                Console.WriteLine($"[INFO] {dataList.Count} images were detected in the 'Pictures' folder!");
+            }
+            else
+            {
+                Console.WriteLine($"[INFO] Nothing was found in the 'Pictures' folder!");
+            }
+
+            // Retrieving the parameters name list in the .txt file that the user wants to highlight in the document.
+            string highlightFile = File.ReadAllText($"{baseFolder}\\HighlightParameters.txt");
+            string[] highlightSplit = highlightFile.Split("\n");
+            highlightParameters.ParametersList = highlightSplit;
+
+            if (highlightParameters.ParametersList.Length > 0)
+            {
+                Console.WriteLine($"[INFO] {highlightParameters.ParametersList.Length} different parameters will be highlighted in the document!");
+            }
+            else
+            {
+                Console.WriteLine($"[INFO] No highlight will be needed in the document");
+            }
+        }
+
+        private static void ParagraphStylizer(XWPFParagraph paragraph, ParagraphAlignment paragraphAlignment = ParagraphAlignment.LEFT, TextAlignment textAlignment = TextAlignment.CENTER, Borders borderStyle = Borders.None)
+        {
+            paragraph.Alignment = paragraphAlignment;
+            paragraph.VerticalAlignment = textAlignment;
+            paragraph.BorderTop = borderStyle;
+            paragraph.BorderLeft = borderStyle;
+            paragraph.BorderRight = borderStyle;
+            paragraph.BorderBottom = borderStyle;
+        }
+
+        private static void RunStylizer(XWPFParagraph paragraph, int fontSize, string printText, bool bold = false, UnderlinePatterns underline = UnderlinePatterns.None, string color = "000000", string fontFamily = "Calibri", bool italic = false)
+        {
+            XWPFRun run = paragraph.CreateRun();
+            run.FontFamily = fontFamily;
+            run.FontSize = fontSize;
+            run.IsBold = bold;
+            run.Underline = underline;
+            run.IsItalic = italic;
+            run.SetColor(color);
+            run.SetText(printText);
+        }
+
+        private static void HighlightRun(HighlightParameters highlightParameters, string line, XWPFRun run)
+        {
+            string[] parameterKeyValue = line.Split(':');
+            string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
+            bool highlightCondition = Array.Exists(highlightParameters.ParametersList, name => name.Equals(adjustedParameterName));
+
+            if (highlightCondition == true)
+            {
+                run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                {
+                    val = ST_HighlightColor.yellow
+                };
+            }
+        }
+
         // Apply indentation to the raw JSON string and return to be used in the document
         public static string PrettyJson(string unPrettyJson)
         {
             string jsonWithoutDoubleQuotation = unPrettyJson.Replace("\"\"", "\""); // Adjusting double quotation marks that appears when the application reads the JSON.
             string jsonBracketsRemovedStartEnd = jsonWithoutDoubleQuotation.Substring(1, jsonWithoutDoubleQuotation.Length - 2).TrimStart('[').TrimEnd(']'); // When a JSON starts and ends with a bracket, this will remove it because Newtonsoft interprets as an array instead of JSON and will cause an error.
+            JObject parsedJson = new();
 
-            JObject parsedJson = JObject.Parse(jsonBracketsRemovedStartEnd);
+            try
+            {
+                parsedJson = JObject.Parse(jsonBracketsRemovedStartEnd);
+            }
+            catch (JsonException jsonException)
+            {
+                Console.WriteLine($"\n[ERROR] Check all JSON strings inside the 'Input_Data.txt' because one of then is not an object and cannot be parsed to a JSON identation.\n> Error Details: {jsonException.Message}");
+                Environment.Exit(0);
+            }
+
             return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
         }
 
@@ -526,6 +519,44 @@ namespace APITestDocumentCreator
                     level--;
             }
             return level;
+        }
+
+        private static void JSONFormatter(HighlightParameters? highlightParameters, XWPFDocument document, string jsonText)
+        {
+            // This variables will help in the parts where we describe the request and response text
+            string jsonWithIdentation;
+            string[] separator = new[] { "\r\n", "\r", "\n" };
+            string[] lines;
+
+            jsonWithIdentation = PrettyJson(jsonText); // Formatting the JSON
+            lines = jsonWithIdentation.Split(separator, StringSplitOptions.None);
+
+            // Create a paragraph within the cell for each line of the JSON content
+            foreach (string line in lines)
+            {
+                XWPFParagraph endpointJSON = document.CreateParagraph();
+
+                XWPFRun run = endpointJSON.CreateRun();
+                run.SetText(line);
+                run.FontFamily = "Calibri"; // Set font to maintain preformatted style
+                run.FontSize = 10;
+
+                // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
+                // to a JSON list created and populated by the user.
+                HighlightRun(highlightParameters, line, run);
+
+                // Set indentation to mimic JSON structure
+                int indentationLevel = GetIndentationLevel(line);
+                for (int i = 0; i < indentationLevel; i++)
+                {
+                    endpointJSON.IndentationFirstLine = i * 720; // 720 twips = 1/2 inch
+                }
+            }
+        }
+
+        private static void PrintGenericErrorException(Exception exception)
+        {
+            Console.WriteLine($"\n[ERROR]: An error has occurred! See details below: \n{exception.Message}");
         }
     }
 
