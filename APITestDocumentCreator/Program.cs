@@ -120,7 +120,7 @@ namespace APITestDocumentCreator
 
                         // SECTION DESCRIPTION
 
-                        if (sectionNow != null)
+                        if (sectionNow.Description.Trim() != "")
                         {
                             XWPFParagraph sectionDescription = document.CreateParagraph();
                             ParagraphStylizer(sectionDescription, ParagraphAlignment.BOTH);
