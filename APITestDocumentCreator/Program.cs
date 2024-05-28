@@ -491,20 +491,51 @@ namespace APITestDocumentCreator
         public static string PrettyJson(string unPrettyJson)
         {
             string jsonWithoutDoubleQuotation = unPrettyJson.Replace("\"\"", "\""); // Adjusting double quotation marks that appears when the application reads the JSON.
-            string jsonBracketsRemovedStartEnd = jsonWithoutDoubleQuotation.Substring(1, jsonWithoutDoubleQuotation.Length - 2).TrimStart('[').TrimEnd(']'); // When a JSON starts and ends with a bracket, this will remove it because Newtonsoft interprets as an array instead of JSON and will cause an error.
-            JObject parsedJson = new();
+            jsonWithoutDoubleQuotation = jsonWithoutDoubleQuotation.Substring(1, jsonWithoutDoubleQuotation.Length - 2); // Ignoring the first and last quotation marks that are left overs of the Replace().
 
-            try
-            {
-                parsedJson = JObject.Parse(jsonBracketsRemovedStartEnd);
-            }
-            catch (JsonException jsonException)
-            {
-                Console.WriteLine($"\n[ERROR] Check all JSON strings inside the 'Input_Data.txt' because one of then is not an object and cannot be parsed to a JSON identation.\n> Error Details: {jsonException.Message}");
-                Environment.Exit(0);
-            }
+            string parsedJsonString = jsonWithoutDoubleQuotation;
 
-            return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
+            // If a JSON string does not start with curly braces, we can assume that the JSON either starts with a bracket or is broken and have none.
+            if (jsonWithoutDoubleQuotation.StartsWith('{') == false)
+            {
+                // If the JSON does not have either brackets or curly braces, the only solution is by adding brackets at the start and end.
+                if(jsonWithoutDoubleQuotation.StartsWith('[') == false)
+                {
+                    parsedJsonString = $"[{{{jsonWithoutDoubleQuotation}}}]";
+                }
+
+                // In this case we need to use JArray because the JSON will start with brackets.
+                JArray parsedJson = new();
+
+                try
+                {
+                    parsedJson = JArray.Parse(parsedJsonString);
+                }
+                catch (JsonException jsonException)
+                {
+                    Console.WriteLine($"\n[ERROR] Check all JSON strings inside the 'Input_Data.txt' because one of then is not an object and cannot be parsed to a JSON identation.\n> Error Details: {jsonException.Message}");
+                    Environment.Exit(0);
+                }
+
+                return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
+            }
+            // If a JSON string start with curly braces
+            else
+            {
+                JObject parsedJson = new();
+
+                try
+                {
+                    parsedJson = JObject.Parse(parsedJsonString);
+                }
+                catch (JsonException jsonException)
+                {
+                    Console.WriteLine($"\n[ERROR] Check all JSON strings inside the 'Input_Data.txt' because one of then is not an object and cannot be parsed to a JSON identation.\n> Error Details: {jsonException.Message}");
+                    Environment.Exit(0);
+                }
+
+                return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
+            }
         }
 
         // Helper method to get the indentation level of a JSON line
