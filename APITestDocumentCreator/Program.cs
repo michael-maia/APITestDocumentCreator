@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using NPOI;
 using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
+using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -102,11 +103,24 @@ namespace APITestDocumentCreator
                             int widthCentimeters = 15;
                             int heightCentimeters = 10;
 
-                            int widthEmus = widthCentimeters * 360000;
-                            int heightEmus = heightCentimeters * 360000;
+                            int widthEmus = 0;
+                            int heightEmus = 0;
 
                             foreach (string picPath in sectionPictures)
                             {
+                                // Creating a instance of Bitmap so we can access the image dimensions.
+                                Bitmap image = new(picPath);
+
+                                // If the dimensions of the image are small, considering its size in comparison to others, the application will use another value for width and height.
+                                if (image.Width * image.Height < 90000)
+                                {
+                                    widthCentimeters = 10;
+                                    heightCentimeters = 4;
+                                }
+
+                                widthEmus = widthCentimeters * 360000;
+                                heightEmus = heightCentimeters * 360000;
+
                                 XWPFRun pictureRun = documentSectionPictures.CreateRun();
 
                                 using (FileStream picData = new FileStream(picPath, FileMode.Open, FileAccess.Read))
@@ -114,6 +128,8 @@ namespace APITestDocumentCreator
                                     pictureRun.AddPicture(picData, (int)PictureType.PNG, "image1", widthEmus, heightEmus);
                                 }
 
+                                // This double carriage returns is to create a space between images.
+                                pictureRun.AddCarriageReturn();
                                 pictureRun.AddCarriageReturn();
                             }
                         }
@@ -437,7 +453,7 @@ namespace APITestDocumentCreator
 
             // Retrieving the parameters name list in the .txt file that the user wants to highlight in the document.
             string highlightFile = File.ReadAllText($"{baseFolder}\\HighlightParameters.txt");
-            string[] highlightSplit = highlightFile.Split("\n");
+            string[] highlightSplit = highlightFile.Split("\r\n");
             highlightParameters.ParametersList = highlightSplit;
 
             if (highlightParameters.ParametersList.Length > 0)
