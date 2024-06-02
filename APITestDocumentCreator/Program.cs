@@ -31,10 +31,10 @@ namespace APITestDocumentCreator
             // Data validation of every input file
             string[] picturesList; // Array that contains the path of each file found in 'Pictures' folder.
             List<InputData> dataList; // This list contains all lines in the 'Input_Data.txt' file.
-            HighlightParameters? highlightParameters; // Holds all JSON parameters that need highlight in the final document.
+            List<HighlightParameters> highlightParametersList; // Holds all JSON parameters that need highlight in the final document.
             List<SectionProperties> sectionList; // List that will inform all properties of each section of the document.
 
-            InputFilesValidation(baseFolder, picturesFolder, out picturesList, out dataList, out highlightParameters, out sectionList);
+            InputFilesValidation(baseFolder, picturesFolder, out picturesList, out dataList, out highlightParametersList, out sectionList);
 
             // Creating the .docx document
             using (XWPFDocument document = new())
@@ -99,20 +99,20 @@ namespace APITestDocumentCreator
                             XWPFParagraph documentSectionPictures = document.CreateParagraph();
                             ParagraphStylizer(documentSectionPictures, ParagraphAlignment.CENTER);
 
-                            // Here we can define the image dimensions with ease, so the application will convert after (in EMUs (https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/)).
-                            int widthCentimeters = 15;
-                            int heightCentimeters = 10;
-
-                            int widthEmus = 0;
-                            int heightEmus = 0;
-
                             foreach (string picPath in sectionPictures)
                             {
+                                // Here we can define the image dimensions with ease, so the application will convert after (in EMUs (https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/)).
+                                int widthCentimeters = 15;
+                                int heightCentimeters = 10;
+
+                                int widthEmus = 0;
+                                int heightEmus = 0;
+
                                 // Creating a instance of Bitmap so we can access the image dimensions.
                                 Bitmap image = new(picPath);
 
                                 // If the dimensions of the image are small, considering its size in comparison to others, the application will use another value for width and height.
-                                if (image.Width * image.Height < 90000)
+                                if (image.Width * image.Height < 100000)
                                 {
                                     widthCentimeters = 10;
                                     heightCentimeters = 4;
@@ -178,7 +178,7 @@ namespace APITestDocumentCreator
                     else
                     {
                         endpointRequestJSONRun.SetText($"BODY:");
-                        JSONFormatter(highlightParameters, document, jsonRequestText);
+                        JSONFormatter(highlightParametersList, document, jsonRequestText, data.SectionNumber);
                     }
 
                     // ENDPOINT RESPONSE TITLE
@@ -195,7 +195,7 @@ namespace APITestDocumentCreator
 
                     string jsonResponseText = data.Response;
 
-                    JSONFormatter(highlightParameters, document, jsonResponseText);
+                    JSONFormatter(highlightParametersList, document, jsonResponseText, data.SectionNumber);
                 }
 
                 // Create an docx. file and writes the document content into it
@@ -236,10 +236,10 @@ namespace APITestDocumentCreator
                 }
 
                 // Here the application will verify if the highlight file don't exists and if is true another one will be created.
-                if (!File.Exists($"{baseFolder}\\HighlightParameters.txt"))
+                if (!File.Exists($"{baseFolder}\\Highlight_Parameters.txt"))
                 {
-                    File.WriteAllText($"{baseFolder}\\HighlightParameters.txt", "parameter_example1\nexample2\nparameter3", Encoding.UTF8);
-                    Console.WriteLine($"[INFO] Highlight file 'HighlightParameters.txt' has been created inside the folder, with a example inside it.");
+                    File.WriteAllText($"{baseFolder}\\Highlight_Parameters.txt", "parameter_example1;;;\nexample2;;;\nparameter3;;;", Encoding.UTF8);
+                    Console.WriteLine($"[INFO] Highlight file 'Highlight_Parameters.txt' has been created inside the folder, with a example inside it.");
                 }
                 else
                 {
@@ -327,15 +327,15 @@ namespace APITestDocumentCreator
             }
         }
 
-        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters, out List<SectionProperties> sectionList)
+        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out List<HighlightParameters> highlightParametersList, out List<SectionProperties> sectionList)
         {
             Console.WriteLine("\n\n-- INPUT FILES VALIDATION --\n");
 
             // Initializing key variables.
             dataList = Enumerable.Empty<InputData>().ToList();
             sectionList = Enumerable.Empty<SectionProperties>().ToList();
+            highlightParametersList = Enumerable.Empty<HighlightParameters>().ToList();
             picturesList = [];
-            highlightParameters = new();
 
             FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
 
@@ -452,18 +452,70 @@ namespace APITestDocumentCreator
             }
 
             // Retrieving the parameters name list in the .txt file that the user wants to highlight in the document.
-            string highlightFile = File.ReadAllText($"{baseFolder}\\HighlightParameters.txt");
-            string[] highlightSplit = highlightFile.Split("\r\n");
-            highlightParameters.ParametersList = highlightSplit;
+            try
+            {
+                // Every line of the file will be transformed in a instance of SectionProperties so the values can be accessed as a parameter.
+                using (StreamReader streamHighlightFile = new($"{baseFolder}\\Highlight_Parameters.txt", Encoding.UTF8, false, options))
+                {
+                    string highlightParametersFileLine;
 
-            if (highlightParameters.ParametersList.Length > 0)
-            {
-                Console.WriteLine($"[INFO] {highlightParameters.ParametersList.Length} different parameters will be highlighted in the document!");
+                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
+                    while ((highlightParametersFileLine = streamHighlightFile.ReadLine()) != null)
+                    {
+                        string[] highlightParameterProperties = highlightParametersFileLine.Split(';');
+
+                        int highlightCode = 1;
+
+                        if (highlightParameterProperties[1].Trim() != "" || highlightParameterProperties[2].Trim() != "" || highlightParameterProperties[3].Trim() != "")
+                        {
+                            highlightCode = 2;
+                        }
+
+                        //// Some field validations before proceed with the creation of the document.
+                        //if (sectionProperties[0].Trim() == "" || sectionProperties[1].Trim() == "")
+                        //{
+                        //    Console.WriteLine($"\n[ERROR | LINE {sectionFileLineCounter}] Section Number and / or Section Title on file 'Section_Information.txt' are empty and both are need for the application! Check all lines on the file and run the application again.");
+                        //    Environment.Exit(0);
+                        //}
+                        //else if (int.TryParse(sectionProperties[0], out sectionNumber) == false)
+                        //{
+                        //    Console.WriteLine($"\n[ERROR | LINE {sectionNumber}] The first field of the line must be a INTEGER NUMBER, check all lines on the file 'Section_Information.txt' and run the application again.");
+                        //    Environment.Exit(0);
+                        //}
+
+                        HighlightParameters highlightParameter = new()
+                        {
+                            ParameterName = highlightParameterProperties[0],
+                            SectionReferenceNumber = highlightParameterProperties[1].Trim() != "" ? int.Parse(highlightParameterProperties[1]) : null,
+                            ParameterReferenceName = highlightParameterProperties[2].Trim() != "" ? highlightParameterProperties[2] : null,
+                            ParameterReferenceValue = highlightParameterProperties[3].Trim() != "" ? highlightParameterProperties[3] : null,
+                            HighlighCode = highlightCode
+                        };
+
+                        highlightParametersList.Add(highlightParameter);
+                    }
+                }
             }
-            else
+            catch (IOException ioException)
             {
-                Console.WriteLine($"[INFO] No highlight will be needed in the document");
+                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
             }
+            catch (Exception exception)
+            {
+                PrintGenericErrorException(exception);
+            }
+            //string highlightFile = File.ReadAllText($"{baseFolder}\\HighlightParameters.txt");
+            //string[] highlightSplit = highlightFile.Split("\r\n");
+            //highlightParameters.ParametersList = highlightSplit;
+
+            //if (highlightParameters.ParametersList.Length > 0)
+            //{
+            //    Console.WriteLine($"[INFO] {highlightParameters.ParametersList.Length} different parameters will be highlighted in the document!");
+            //}
+            //else
+            //{
+            //    Console.WriteLine($"[INFO] No highlight will be needed in the document");
+            //}
         }
 
         private static void ParagraphStylizer(XWPFParagraph paragraph, ParagraphAlignment paragraphAlignment = ParagraphAlignment.LEFT, TextAlignment textAlignment = TextAlignment.CENTER, Borders borderStyle = Borders.None)
@@ -488,19 +540,71 @@ namespace APITestDocumentCreator
             run.SetText(printText);
         }
 
-        private static void HighlightRun(HighlightParameters highlightParameters, string line, XWPFRun run)
+        private static void HighlightRun(List<HighlightParameters> highlightParameters, string line, XWPFRun run, int sectionNumber)
         {
             string[] parameterKeyValue = line.Split(':');
-            string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
-            bool highlightCondition = Array.Exists(highlightParameters.ParametersList, name => name.Equals(adjustedParameterName));
 
-            if (highlightCondition == true)
+            if(parameterKeyValue.Length >= 2)
             {
-                run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
+                string adjustedParameterValue = parameterKeyValue[1].Replace("\"", "").Replace(",","").Trim();
+                //string adjustedParameterName = parameterKeyValue[0];
+                //string adjustedParameterValue = parameterKeyValue[1];
+
+                var teste2 = highlightParameters.Where(hp => hp.SectionReferenceNumber == null);
+                var teste = highlightParameters.Where(hp => hp.SectionReferenceNumber == sectionNumber);
+
+                if (teste2.Count() > 0)
                 {
-                    val = ST_HighlightColor.yellow
-                };
+                    foreach (var hp2 in teste2)
+                    {
+                        if (hp2.ParameterName == adjustedParameterName)
+                        {
+                            run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                            {
+                                val = ST_HighlightColor.yellow
+                            };
+                        }
+                    }
+                }
+
+
+                if (teste.Count() > 0)
+                {
+                    foreach (var hp in teste)
+                    {
+                        if (hp.HighlighCode == 2)
+                        {
+                            if (hp.ParameterReferenceName == adjustedParameterName && hp.ParameterReferenceValue == adjustedParameterValue)
+                            {
+                                hp.HighlighCode = 3;
+                            }
+                        }
+                        else if (hp.HighlighCode == 3)
+                        {
+                            if (hp.ParameterName == adjustedParameterName)
+                            {
+                                run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                                {
+                                    val = ST_HighlightColor.yellow
+                                };
+
+                                hp.HighlighCode = 4;
+                            }
+                        }
+                    }
+                }
+
             }
+            //bool highlightCondition = Array.Exists(highlightParameters.ParametersList, name => name.Equals(adjustedParameterName));
+
+            //if (highlightCondition == true)
+            //{
+            //    run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+            //    {
+            //        val = ST_HighlightColor.yellow
+            //    };
+            //}
         }
 
         // Apply indentation to the raw JSON string and return to be used in the document
@@ -568,7 +672,7 @@ namespace APITestDocumentCreator
             return level;
         }
 
-        private static void JSONFormatter(HighlightParameters? highlightParameters, XWPFDocument document, string jsonText)
+        private static void JSONFormatter(List<HighlightParameters> highlightParameters, XWPFDocument document, string jsonText, int sectionNumber)
         {
             // This variables will help in the parts where we describe the request and response text
             string jsonWithIdentation;
@@ -590,7 +694,7 @@ namespace APITestDocumentCreator
 
                 // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
                 // to a JSON list created and populated by the user.
-                HighlightRun(highlightParameters, line, run);
+                HighlightRun(highlightParameters, line, run, sectionNumber);
 
                 // Set indentation to mimic JSON structure
                 int indentationLevel = GetIndentationLevel(line);
@@ -619,7 +723,19 @@ namespace APITestDocumentCreator
 
     public class HighlightParameters()
     {
-        public string[] ParametersList { get; set; }
+        //public string[] ParametersList { get; set; }
+        public string ParameterName {  get; set; }
+        public int? SectionReferenceNumber { get; set; }
+        public string? ParameterReferenceName { get; set; }
+        public string? ParameterReferenceValue { get; set; }
+
+        /** Highlight Codes
+         *  1 = Don't have reference. => This will be used if all reference properties are null.
+         *  2 = The reference was not found yet.
+         *  3 = The reference was found and the parameter is ready to be highlighted.
+         *  4 = Parameter was highlighted.
+         */
+        public int HighlighCode { get; set; }
     }
 
     public class SectionProperties()
