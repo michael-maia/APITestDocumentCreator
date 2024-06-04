@@ -31,10 +31,10 @@ namespace APITestDocumentCreator
             // Data validation of every input file
             string[] picturesList; // Array that contains the path of each file found in 'Pictures' folder.
             List<InputData> dataList; // This list contains all lines in the 'Input_Data.txt' file.
-            HighlightParameters? highlightParameters; // Holds all JSON parameters that need highlight in the final document.
+            List<HighlightParameters> highlightParametersList; // Holds all JSON parameters that need highlight in the final document.
             List<SectionProperties> sectionList; // List that will inform all properties of each section of the document.
 
-            InputFilesValidation(baseFolder, picturesFolder, out picturesList, out dataList, out highlightParameters, out sectionList);
+            InputFilesValidation(baseFolder, picturesFolder, out picturesList, out dataList, out highlightParametersList, out sectionList);
 
             // Creating the .docx document
             using (XWPFDocument document = new())
@@ -80,7 +80,7 @@ namespace APITestDocumentCreator
                         RunStylizer(documentSection, 14, sectionText, true, UnderlinePatterns.Single, "44AE2F");
 
                         // SECTION PICTURES
-                        List<string> sectionPictures = new();
+                        List<string> sectionPictures = [];
 
                         // In picturesList is save the full patch to every picture, so the application will retrieve only the name of the file.
                         foreach (string picture in picturesList)
@@ -99,20 +99,20 @@ namespace APITestDocumentCreator
                             XWPFParagraph documentSectionPictures = document.CreateParagraph();
                             ParagraphStylizer(documentSectionPictures, ParagraphAlignment.CENTER);
 
-                            // Here we can define the image dimensions with ease, so the application will convert after (in EMUs (https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/)).
-                            int widthCentimeters = 15;
-                            int heightCentimeters = 10;
-
-                            int widthEmus = 0;
-                            int heightEmus = 0;
-
                             foreach (string picPath in sectionPictures)
                             {
+                                // Here we can define the image dimensions with ease, so the application will convert after (in EMUs (https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/)).
+                                int widthCentimeters = 15;
+                                int heightCentimeters = 10;
+
+                                int widthEmus = 0;
+                                int heightEmus = 0;
+
                                 // Creating a instance of Bitmap so we can access the image dimensions.
                                 Bitmap image = new(picPath);
 
                                 // If the dimensions of the image are small, considering its size in comparison to others, the application will use another value for width and height.
-                                if (image.Width * image.Height < 90000)
+                                if (image.Width * image.Height < 100000)
                                 {
                                     widthCentimeters = 10;
                                     heightCentimeters = 4;
@@ -123,7 +123,7 @@ namespace APITestDocumentCreator
 
                                 XWPFRun pictureRun = documentSectionPictures.CreateRun();
 
-                                using (FileStream picData = new FileStream(picPath, FileMode.Open, FileAccess.Read))
+                                using (FileStream picData = new (picPath, FileMode.Open, FileAccess.Read))
                                 {
                                     pictureRun.AddPicture(picData, (int)PictureType.PNG, "image1", widthEmus, heightEmus);
                                 }
@@ -178,7 +178,7 @@ namespace APITestDocumentCreator
                     else
                     {
                         endpointRequestJSONRun.SetText($"BODY:");
-                        JSONFormatter(highlightParameters, document, jsonRequestText);
+                        JSONFormatter(highlightParametersList, document, jsonRequestText, data.SectionNumber);
                     }
 
                     // ENDPOINT RESPONSE TITLE
@@ -195,7 +195,7 @@ namespace APITestDocumentCreator
 
                     string jsonResponseText = data.Response;
 
-                    JSONFormatter(highlightParameters, document, jsonResponseText);
+                    JSONFormatter(highlightParametersList, document, jsonResponseText, data.SectionNumber);
                 }
 
                 // Create an docx. file and writes the document content into it
@@ -236,10 +236,10 @@ namespace APITestDocumentCreator
                 }
 
                 // Here the application will verify if the highlight file don't exists and if is true another one will be created.
-                if (!File.Exists($"{baseFolder}\\HighlightParameters.txt"))
+                if (!File.Exists($"{baseFolder}\\Highlight_Parameters.txt"))
                 {
-                    File.WriteAllText($"{baseFolder}\\HighlightParameters.txt", "parameter_example1\nexample2\nparameter3", Encoding.UTF8);
-                    Console.WriteLine($"[INFO] Highlight file 'HighlightParameters.txt' has been created inside the folder, with a example inside it.");
+                    File.WriteAllText($"{baseFolder}\\Highlight_Parameters.txt", "parameter_example1;;;\nexample2;;;\nparameter3;;;", Encoding.UTF8);
+                    Console.WriteLine($"[INFO] Highlight file 'Highlight_Parameters.txt' has been created inside the folder, with a example inside it.");
                 }
                 else
                 {
@@ -327,15 +327,15 @@ namespace APITestDocumentCreator
             }
         }
 
-        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out HighlightParameters? highlightParameters, out List<SectionProperties> sectionList)
+        private static void InputFilesValidation(string baseFolder, string picturesFolder, out string[] picturesList, out List<InputData> dataList, out List<HighlightParameters> highlightParametersList, out List<SectionProperties> sectionList)
         {
             Console.WriteLine("\n\n-- INPUT FILES VALIDATION --\n");
 
             // Initializing key variables.
             dataList = Enumerable.Empty<InputData>().ToList();
             sectionList = Enumerable.Empty<SectionProperties>().ToList();
+            highlightParametersList = Enumerable.Empty<HighlightParameters>().ToList();
             picturesList = [];
-            highlightParameters = new();
 
             FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
 
@@ -452,17 +452,61 @@ namespace APITestDocumentCreator
             }
 
             // Retrieving the parameters name list in the .txt file that the user wants to highlight in the document.
-            string highlightFile = File.ReadAllText($"{baseFolder}\\HighlightParameters.txt");
-            string[] highlightSplit = highlightFile.Split("\r\n");
-            highlightParameters.ParametersList = highlightSplit;
+            try
+            {
+                // Every line of the file will be transformed in a instance of SectionProperties so the values can be accessed as a parameter.
+                using (StreamReader streamHighlightFile = new($"{baseFolder}\\Highlight_Parameters.txt", Encoding.UTF8, false, options))
+                {
+                    string highlightParametersFileLine;
 
-            if (highlightParameters.ParametersList.Length > 0)
-            {
-                Console.WriteLine($"[INFO] {highlightParameters.ParametersList.Length} different parameters will be highlighted in the document!");
+                    // Each line is stored inside the 'fileLine' variable so it can be analyzed.
+                    while ((highlightParametersFileLine = streamHighlightFile.ReadLine()) != null)
+                    {
+                        string[] highlightParameterProperties = highlightParametersFileLine.Split(';');
+
+                        // In this part the application will verify the type of reference was defined in the file and by default it will assume that is Global and don't have any references (basic type)
+                        HighlightType highlightType = HighlightType.Global;
+                        HighlightCode highlightCode = HighlightCode.NoReference;
+
+                        // If SectionReferenceNumber has data or not in the file
+                        if (highlightParameterProperties[1].Trim() != "")
+                        {
+                            // If ParameterReference is filled in the highlight file we are already define this highlight as a section and parameter dependency
+                            if (highlightParameterProperties[2].Trim() != "")
+                            {
+                                highlightType = HighlightType.SectionAndParameterReference;
+                            }
+                            // If does not have data the application will consider that is a highlight by section.
+                            else
+                            {
+                                highlightType = HighlightType.SectionOnly;
+                            }
+
+                            highlightCode = HighlightCode.ReferenceNotFound;
+                        }
+
+                        // Creating the object that holds all features of this highlight.
+                        HighlightParameters highlightParameter = new()
+                        {
+                            ParameterName = highlightParameterProperties[0],
+                            HighlightType = highlightType,
+                            HighlighCode = highlightCode,
+                            SectionReferenceNumber = highlightParameterProperties[1].Trim() != "" ? int.Parse(highlightParameterProperties[1]) : null,
+                            ParameterReferenceName = highlightParameterProperties[2].Trim() != "" ? highlightParameterProperties[2] : null,
+                            ParameterReferenceValue = highlightParameterProperties[3].Trim() != "" ? highlightParameterProperties[3] : null
+                        };
+
+                        highlightParametersList.Add(highlightParameter);
+                    }
+                }
             }
-            else
+            catch (IOException ioException)
             {
-                Console.WriteLine($"[INFO] No highlight will be needed in the document");
+                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
+            }
+            catch (Exception exception)
+            {
+                PrintGenericErrorException(exception);
             }
         }
 
@@ -488,18 +532,50 @@ namespace APITestDocumentCreator
             run.SetText(printText);
         }
 
-        private static void HighlightRun(HighlightParameters highlightParameters, string line, XWPFRun run)
+        private static void HighlightRun(List<HighlightParameters> highlightParameters, string line, XWPFRun run, int sectionNumber)
         {
             string[] parameterKeyValue = line.Split(':');
-            string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
-            bool highlightCondition = Array.Exists(highlightParameters.ParametersList, name => name.Equals(adjustedParameterName));
 
-            if (highlightCondition == true)
+            if (parameterKeyValue.Length >= 2)
             {
-                run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                // First we adjust the parameter and value for better comparison.
+                string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
+                string adjustedParameterValue = parameterKeyValue[1].Replace("\"", "").Replace(",","").Trim();
+
+                // Check if there is any global highlight with the same name as the adjusted parameter.
+                bool highlightGlobal = highlightParameters.Any(hp => hp.ParameterName == adjustedParameterName && hp.SectionReferenceNumber == null);
+
+                if (highlightGlobal != false)
                 {
-                    val = ST_HighlightColor.yellow
-                };
+                    run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                    {
+                        val = ST_HighlightColor.yellow
+                    };
+                }
+
+                // Create a list of all highlight parameters with same section as reference.
+                IEnumerable<HighlightParameters> highlightReferenceList = highlightParameters.Where(hp => hp.SectionReferenceNumber == sectionNumber);
+
+                if (highlightReferenceList.Any())
+                {
+                    // In this loop the application will check some conditions to see if the parameter in the JSON is OK to be highlighted.
+                    foreach (HighlightParameters hp in highlightReferenceList)
+                    {
+                        if (hp.ParameterName == adjustedParameterName && (hp.HighlightType == HighlightType.SectionOnly || hp.HighlighCode == HighlightCode.ReferenceFound))
+                        {
+                            run.GetCTR().AddNewRPr().highlight = new CT_Highlight
+                            {
+                                val = ST_HighlightColor.yellow
+                            };
+
+                            hp.HighlighCode = HighlightCode.ParameterHighlighted;
+                        }
+                        else if (hp.ParameterReferenceName == adjustedParameterName && hp.ParameterReferenceValue == adjustedParameterValue && hp.HighlighCode == HighlightCode.ReferenceNotFound)
+                        {
+                            hp.HighlighCode = HighlightCode.ReferenceFound;
+                        }
+                    }
+                }
             }
         }
 
@@ -521,7 +597,7 @@ namespace APITestDocumentCreator
                 }
 
                 // In this case we need to use JArray because the JSON will start with brackets.
-                JArray parsedJson = new();
+                JArray parsedJson = [];
 
                 try
                 {
@@ -538,7 +614,7 @@ namespace APITestDocumentCreator
             // If a JSON string start with curly braces
             else
             {
-                JObject parsedJson = new();
+                JObject parsedJson = [];
 
                 try
                 {
@@ -568,11 +644,11 @@ namespace APITestDocumentCreator
             return level;
         }
 
-        private static void JSONFormatter(HighlightParameters? highlightParameters, XWPFDocument document, string jsonText)
+        private static void JSONFormatter(List<HighlightParameters> highlightParameters, XWPFDocument document, string jsonText, int sectionNumber)
         {
             // This variables will help in the parts where we describe the request and response text
             string jsonWithIdentation;
-            string[] separator = new[] { "\r\n", "\r", "\n" };
+            string[] separator = ["\r\n", "\r", "\n"];
             string[] lines;
 
             jsonWithIdentation = PrettyJson(jsonText); // Formatting the JSON
@@ -590,7 +666,7 @@ namespace APITestDocumentCreator
 
                 // Every line of the JSON is composed of a parameter name and its value and this function will extract the name and compare
                 // to a JSON list created and populated by the user.
-                HighlightRun(highlightParameters, line, run);
+                HighlightRun(highlightParameters, line, run, sectionNumber);
 
                 // Set indentation to mimic JSON structure
                 int indentationLevel = GetIndentationLevel(line);
@@ -617,9 +693,36 @@ namespace APITestDocumentCreator
         public string Response { get; set; }
     }
 
+    public enum HighlightType
+    {
+        Global = 1,
+        SectionOnly = 2,
+        SectionAndParameterReference = 3
+    }
+
+    public enum HighlightCode
+    {
+        /** Highlight Codes
+         *  1 = Don't have reference. => This will be used if all reference properties are null.
+         *  2 = The reference was not found yet.
+         *  3 = The reference was found and the parameter is ready to be highlighted.
+         *  4 = Parameter was highlighted.
+         */
+
+        NoReference = 1,
+        ReferenceNotFound = 2,
+        ReferenceFound = 3,
+        ParameterHighlighted = 4
+    }
+
     public class HighlightParameters()
     {
-        public string[] ParametersList { get; set; }
+        public string ParameterName {  get; set; }
+        public HighlightType HighlightType { get; set; }
+        public HighlightCode HighlighCode { get; set; }
+        public int? SectionReferenceNumber { get; set; }
+        public string? ParameterReferenceName { get; set; }
+        public string? ParameterReferenceValue { get; set; }
     }
 
     public class SectionProperties()
