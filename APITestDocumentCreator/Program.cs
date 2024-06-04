@@ -80,7 +80,7 @@ namespace APITestDocumentCreator
                         RunStylizer(documentSection, 14, sectionText, true, UnderlinePatterns.Single, "44AE2F");
 
                         // SECTION PICTURES
-                        List<string> sectionPictures = new();
+                        List<string> sectionPictures = [];
 
                         // In picturesList is save the full patch to every picture, so the application will retrieve only the name of the file.
                         foreach (string picture in picturesList)
@@ -123,7 +123,7 @@ namespace APITestDocumentCreator
 
                                 XWPFRun pictureRun = documentSectionPictures.CreateRun();
 
-                                using (FileStream picData = new FileStream(picPath, FileMode.Open, FileAccess.Read))
+                                using (FileStream picData = new (picPath, FileMode.Open, FileAccess.Read))
                                 {
                                     pictureRun.AddPicture(picData, (int)PictureType.PNG, "image1", widthEmus, heightEmus);
                                 }
@@ -464,32 +464,36 @@ namespace APITestDocumentCreator
                     {
                         string[] highlightParameterProperties = highlightParametersFileLine.Split(';');
 
-                        int highlightCode = 1;
+                        // In this part the application will verify the type of reference was defined in the file and by default it will assume that is Global and don't have any references (basic type)
+                        HighlightType highlightType = HighlightType.Global;
+                        HighlightCode highlightCode = HighlightCode.NoReference;
 
-                        if (highlightParameterProperties[1].Trim() != "" || highlightParameterProperties[2].Trim() != "" || highlightParameterProperties[3].Trim() != "")
+                        // If SectionReferenceNumber has data or not in the file
+                        if (highlightParameterProperties[1].Trim() != "")
                         {
-                            highlightCode = 2;
+                            // If ParameterReference is filled in the highlight file we are already define this highlight as a section and parameter dependency
+                            if (highlightParameterProperties[2].Trim() != "")
+                            {
+                                highlightType = HighlightType.SectionAndParameterReference;
+                            }
+                            // If does not have data the application will consider that is a highlight by section.
+                            else
+                            {
+                                highlightType = HighlightType.SectionOnly;
+                            }
+
+                            highlightCode = HighlightCode.ReferenceNotFound;
                         }
 
-                        //// Some field validations before proceed with the creation of the document.
-                        //if (sectionProperties[0].Trim() == "" || sectionProperties[1].Trim() == "")
-                        //{
-                        //    Console.WriteLine($"\n[ERROR | LINE {sectionFileLineCounter}] Section Number and / or Section Title on file 'Section_Information.txt' are empty and both are need for the application! Check all lines on the file and run the application again.");
-                        //    Environment.Exit(0);
-                        //}
-                        //else if (int.TryParse(sectionProperties[0], out sectionNumber) == false)
-                        //{
-                        //    Console.WriteLine($"\n[ERROR | LINE {sectionNumber}] The first field of the line must be a INTEGER NUMBER, check all lines on the file 'Section_Information.txt' and run the application again.");
-                        //    Environment.Exit(0);
-                        //}
-
+                        // Creating the object that holds all features of this highlight.
                         HighlightParameters highlightParameter = new()
                         {
                             ParameterName = highlightParameterProperties[0],
+                            HighlightType = highlightType,
+                            HighlighCode = highlightCode,
                             SectionReferenceNumber = highlightParameterProperties[1].Trim() != "" ? int.Parse(highlightParameterProperties[1]) : null,
                             ParameterReferenceName = highlightParameterProperties[2].Trim() != "" ? highlightParameterProperties[2] : null,
-                            ParameterReferenceValue = highlightParameterProperties[3].Trim() != "" ? highlightParameterProperties[3] : null,
-                            HighlighCode = highlightCode
+                            ParameterReferenceValue = highlightParameterProperties[3].Trim() != "" ? highlightParameterProperties[3] : null
                         };
 
                         highlightParametersList.Add(highlightParameter);
@@ -504,18 +508,6 @@ namespace APITestDocumentCreator
             {
                 PrintGenericErrorException(exception);
             }
-            //string highlightFile = File.ReadAllText($"{baseFolder}\\HighlightParameters.txt");
-            //string[] highlightSplit = highlightFile.Split("\r\n");
-            //highlightParameters.ParametersList = highlightSplit;
-
-            //if (highlightParameters.ParametersList.Length > 0)
-            //{
-            //    Console.WriteLine($"[INFO] {highlightParameters.ParametersList.Length} different parameters will be highlighted in the document!");
-            //}
-            //else
-            //{
-            //    Console.WriteLine($"[INFO] No highlight will be needed in the document");
-            //}
         }
 
         private static void ParagraphStylizer(XWPFParagraph paragraph, ParagraphAlignment paragraphAlignment = ParagraphAlignment.LEFT, TextAlignment textAlignment = TextAlignment.CENTER, Borders borderStyle = Borders.None)
@@ -544,67 +536,47 @@ namespace APITestDocumentCreator
         {
             string[] parameterKeyValue = line.Split(':');
 
-            if(parameterKeyValue.Length >= 2)
+            if (parameterKeyValue.Length >= 2)
             {
+                // First we adjust the parameter and value for better comparison.
                 string adjustedParameterName = parameterKeyValue[0].Replace("\"", "").Trim();
                 string adjustedParameterValue = parameterKeyValue[1].Replace("\"", "").Replace(",","").Trim();
-                //string adjustedParameterName = parameterKeyValue[0];
-                //string adjustedParameterValue = parameterKeyValue[1];
 
-                var teste2 = highlightParameters.Where(hp => hp.SectionReferenceNumber == null);
-                var teste = highlightParameters.Where(hp => hp.SectionReferenceNumber == sectionNumber);
+                // Check if there is any global highlight with the same name as the adjusted parameter.
+                bool highlightGlobal = highlightParameters.Any(hp => hp.ParameterName == adjustedParameterName && hp.SectionReferenceNumber == null);
 
-                if (teste2.Count() > 0)
+                if (highlightGlobal != false)
                 {
-                    foreach (var hp2 in teste2)
+                    run.GetCTR().AddNewRPr().highlight = new CT_Highlight
                     {
-                        if (hp2.ParameterName == adjustedParameterName)
+                        val = ST_HighlightColor.yellow
+                    };
+                }
+
+                // Create a list of all highlight parameters with same section as reference.
+                IEnumerable<HighlightParameters> highlightReferenceList = highlightParameters.Where(hp => hp.SectionReferenceNumber == sectionNumber);
+
+                if (highlightReferenceList.Any())
+                {
+                    // In this loop the application will check some conditions to see if the parameter in the JSON is OK to be highlighted.
+                    foreach (HighlightParameters hp in highlightReferenceList)
+                    {
+                        if (hp.ParameterName == adjustedParameterName && (hp.HighlightType == HighlightType.SectionOnly || hp.HighlighCode == HighlightCode.ReferenceFound))
                         {
                             run.GetCTR().AddNewRPr().highlight = new CT_Highlight
                             {
                                 val = ST_HighlightColor.yellow
                             };
+
+                            hp.HighlighCode = HighlightCode.ParameterHighlighted;
+                        }
+                        else if (hp.ParameterReferenceName == adjustedParameterName && hp.ParameterReferenceValue == adjustedParameterValue && hp.HighlighCode == HighlightCode.ReferenceNotFound)
+                        {
+                            hp.HighlighCode = HighlightCode.ReferenceFound;
                         }
                     }
                 }
-
-
-                if (teste.Count() > 0)
-                {
-                    foreach (var hp in teste)
-                    {
-                        if (hp.HighlighCode == 2)
-                        {
-                            if (hp.ParameterReferenceName == adjustedParameterName && hp.ParameterReferenceValue == adjustedParameterValue)
-                            {
-                                hp.HighlighCode = 3;
-                            }
-                        }
-                        else if (hp.HighlighCode == 3)
-                        {
-                            if (hp.ParameterName == adjustedParameterName)
-                            {
-                                run.GetCTR().AddNewRPr().highlight = new CT_Highlight
-                                {
-                                    val = ST_HighlightColor.yellow
-                                };
-
-                                hp.HighlighCode = 4;
-                            }
-                        }
-                    }
-                }
-
             }
-            //bool highlightCondition = Array.Exists(highlightParameters.ParametersList, name => name.Equals(adjustedParameterName));
-
-            //if (highlightCondition == true)
-            //{
-            //    run.GetCTR().AddNewRPr().highlight = new CT_Highlight
-            //    {
-            //        val = ST_HighlightColor.yellow
-            //    };
-            //}
         }
 
         // Apply indentation to the raw JSON string and return to be used in the document
@@ -625,7 +597,7 @@ namespace APITestDocumentCreator
                 }
 
                 // In this case we need to use JArray because the JSON will start with brackets.
-                JArray parsedJson = new();
+                JArray parsedJson = [];
 
                 try
                 {
@@ -642,7 +614,7 @@ namespace APITestDocumentCreator
             // If a JSON string start with curly braces
             else
             {
-                JObject parsedJson = new();
+                JObject parsedJson = [];
 
                 try
                 {
@@ -676,7 +648,7 @@ namespace APITestDocumentCreator
         {
             // This variables will help in the parts where we describe the request and response text
             string jsonWithIdentation;
-            string[] separator = new[] { "\r\n", "\r", "\n" };
+            string[] separator = ["\r\n", "\r", "\n"];
             string[] lines;
 
             jsonWithIdentation = PrettyJson(jsonText); // Formatting the JSON
@@ -721,21 +693,36 @@ namespace APITestDocumentCreator
         public string Response { get; set; }
     }
 
-    public class HighlightParameters()
+    public enum HighlightType
     {
-        //public string[] ParametersList { get; set; }
-        public string ParameterName {  get; set; }
-        public int? SectionReferenceNumber { get; set; }
-        public string? ParameterReferenceName { get; set; }
-        public string? ParameterReferenceValue { get; set; }
+        Global = 1,
+        SectionOnly = 2,
+        SectionAndParameterReference = 3
+    }
 
+    public enum HighlightCode
+    {
         /** Highlight Codes
          *  1 = Don't have reference. => This will be used if all reference properties are null.
          *  2 = The reference was not found yet.
          *  3 = The reference was found and the parameter is ready to be highlighted.
          *  4 = Parameter was highlighted.
          */
-        public int HighlighCode { get; set; }
+
+        NoReference = 1,
+        ReferenceNotFound = 2,
+        ReferenceFound = 3,
+        ParameterHighlighted = 4
+    }
+
+    public class HighlightParameters()
+    {
+        public string ParameterName {  get; set; }
+        public HighlightType HighlightType { get; set; }
+        public HighlightCode HighlighCode { get; set; }
+        public int? SectionReferenceNumber { get; set; }
+        public string? ParameterReferenceName { get; set; }
+        public string? ParameterReferenceValue { get; set; }
     }
 
     public class SectionProperties()
