@@ -6,29 +6,32 @@ using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Resources;
 
 namespace APITestDocumentCreator
 {
     public static class ProgramExtensions
     {
-        public static void CreateApplicationBasicStructure(string baseFolder, string resultFolder, string picturesFolder, bool exampleRequested, string[] fileNamesList)
+        public static void CreateApplicationBasicStructure(ResourceManager resourceManager, string baseFolder, string resultFolder, string picturesFolder, bool exampleRequested, string[] fileNamesList)
         {
             Console.WriteLine("======================================\n" +
-                              "     BASIC APPLICATION STRUCTURE\n" +
-                              "======================================" +
-                              "\n [INFO] In this step the application will check if the base folders and files are already created or need creation.\n");
+                              resourceManager.GetString("BasicApplicationStructureTitle") +
+                              "======================================");
+            Console.WriteLine(resourceManager.GetString("BasicApplicationStructureDescription"));
 
             try
             {
                 // Checking if the folder structure already exists.
                 if (Directory.Exists(resultFolder))
                 {
-                    Console.WriteLine($"[INFO] Basic folder structure already exists! No need for creation. The path is {baseFolder}");
+                    //Console.WriteLine($"[INFO] Basic folder structure already exists! No need for creation. The path is {baseFolder}");
+                    Console.WriteLine(resourceManager.GetString("BasicApplicationStructureExists"), baseFolder);
                 }
                 else
                 {
                     // Creating all basic folders.
-                    Console.WriteLine($"[INFO] Creating basic folder strucutre in the following path: {baseFolder}");
+                    //Console.WriteLine($"[INFO] Creating basic folder strucutre in the following path: {baseFolder}");
+                    Console.WriteLine(resourceManager.GetString("BasicApplicationStructureCreated"), baseFolder);
 
                     // Here the application will create both base folder and result.
                     Directory.CreateDirectory(resultFolder);
@@ -37,7 +40,7 @@ namespace APITestDocumentCreator
             }
             catch (Exception exception)
             {
-                ProgramExtensions.PrintGenericErrorException(exception);
+                ProgramExtensions.PrintGenericErrorException(resourceManager, exception);
             }
 
             try
@@ -46,13 +49,16 @@ namespace APITestDocumentCreator
                 {
                     // Creating a file with an example inside it so the user can run the program to check this result.
                     File.WriteAllText($"{baseFolder}\\{fileNamesList[0]}.txt", "1;Users Connected;https://system.com/api/users;\"{\"only_connected_users\":\"true\"}\";\"[{\"id\":1,\"first_name\":\"Jeanette\",\"last_name\":\"Penddreth\",\"email\":\"jpenddreth0@census.gov\",\"gender\":\"Female\",\"ip_address\":\"26.58.193.2\"},{\"id\":2,\"first_name\":\"Giavani\",\"last_name\":\"Frediani\",\"email\":\"gfrediani1@senate.gov\",\"gender\":\"Male\",\"ip_address\":\"229.179.4.212\"}]\"\n2;Users By Company;https://system.com/api/company;\"{\"company_name\":\"ARTIQ\"}\";\"[{\"_id\":\"5973782bdb9a930533b05cb2\",\"isActive\":true,\"balance\":\"$1,446.35\",\"age\":32,\"eyeColor\":\"green\",\"name\":\"LoganKeller\",\"gender\":\"male\",\"company\":\"ARTIQ\",\"email\":\"logankeller@artiq.com\",\"phone\":\"+1(952)533-2258\",\"friends\":[{\"id\":0,\"name\":\"ColonSalazar\"},{\"id\":1,\"name\":\"FrenchMcneil\"},{\"id\":2,\"name\":\"JackPaul\"}],\"favoriteFruit\":\"banana\"},{\"_id\":\"4987255bdb9a930533j50bv2\",\"isActive\":false,\"balance\":\"$10,644.27\",\"age\":40,\"eyeColor\":\"blue\",\"name\":\"JackPaul\",\"gender\":\"male\",\"company\":\"ARTIQ\",\"email\":\"jackpaul@artiq.com\",\"phone\":\"+1(952)355-3348\",\"friends\":[{\"id\":0,\"name\":\"LoganKeller\"},{\"id\":1,\"name\":\"FrenchMcneil\"},{\"id\":2,\"name\":\"CarolMartin\"}],\"favoriteFruit\":\"banana\"}]\"", Encoding.UTF8);
-                    Console.WriteLine($"[INFO] Input file '{fileNamesList[0]}.txt' has been created inside the folder, with an example inside it.");
+                    //Console.WriteLine($"[INFO] Input file '{fileNamesList[0]}.txt' has been created inside the folder, with an example inside it.");
+                    Console.WriteLine(resourceManager.GetString("BasicApplicationStructureInputExampleCreated"), fileNamesList[0]);
 
                     File.WriteAllText($"{baseFolder}\\{fileNamesList[1]}.txt", "1;Connected Users;This section will show all users connected to our system.\n2;Users With Same Company;In this part the API returned a list of users that are from a specific company.", Encoding.UTF8);
-                    Console.WriteLine($"[INFO] Section data file '{fileNamesList[1]}.txt' has been created inside the folder, with a example inside it.");
+                    //Console.WriteLine($"[INFO] Section data file '{fileNamesList[1]}.txt' has been created inside the folder, with a example inside it.");
+                    Console.WriteLine(resourceManager.GetString("BasicApplicationStructureSectionExampleCreated"), fileNamesList[1]);
 
                     File.WriteAllText($"{baseFolder}\\{fileNamesList[2]}.txt", "email;;;\nid;1;;\nfirst_name;1;id;1\nlast_name;1;id;1\nemail;1;id;1\n_id;2;;\nisActive;2;_id;5973782bdb9a930533b05cb2\nbalance;2;_id;5973782bdb9a930533b05cb2\nage;2;_id;5973782bdb9a930533b05cb2\nname;2;_id;5973782bdb9a930533b05cb2", Encoding.UTF8);
-                    Console.WriteLine($"[INFO] Highlight file '{fileNamesList[2]}.txt' has been created inside the folder, with a example inside it.");
+                    //Console.WriteLine($"[INFO] Highlight file '{fileNamesList[2]}.txt' has been created inside the folder, with a example inside it.");
+                    Console.WriteLine(resourceManager.GetString("BasicApplicationStructureHighlightExampleCreated"), fileNamesList[2]);
                 }
                 else
                 {
@@ -61,57 +67,64 @@ namespace APITestDocumentCreator
                     if (!File.Exists($"{baseFolder}\\{fileNamesList[0]}.txt"))
                     {
                         File.WriteAllText($"{baseFolder}\\{fileNamesList[0]}.txt", "", Encoding.UTF8);
-                        Console.WriteLine($"[INFO] Input file '{fileNamesList[0]}.txt' has been created inside the folder.");
+                        //Console.WriteLine($"[INFO] Input file '{fileNamesList[0]}.txt' has been created inside the folder.");
+                        Console.WriteLine(resourceManager.GetString("BasicApplicationStructureInputCreated"), fileNamesList[0]);
+
                     }
                     else
                     {
-                        Console.WriteLine($"[INFO] Input file already exist, please check your data inside it!");
+                        //Console.WriteLine($"[INFO] Input file already exist, please check your data inside it!");
+                        Console.WriteLine(resourceManager.GetString("BasicApplicationStructureInputExists"));
                     }
 
                     // This file will contain information about the section in the document (number, title and description)
                     if (!File.Exists($"{baseFolder}\\{fileNamesList[1]}.txt"))
                     {
                         File.WriteAllText($"{baseFolder}\\{fileNamesList[1]}.txt", "", Encoding.UTF8);
-                        Console.WriteLine($"[INFO] Section data file '{fileNamesList[1]}.txt' has been created inside the folder.");
+                        //Console.WriteLine($"[INFO] Section data file '{fileNamesList[1]}.txt' has been created inside the folder.");
+                        Console.WriteLine(resourceManager.GetString("BasicApplicationStructureSectionCreated"), fileNamesList[1]);
                     }
                     else
                     {
-                        Console.WriteLine($"[INFO] Section data file already exist, please review if the file is in the correct pattern!");
+                        //Console.WriteLine($"[INFO] Section data file already exist, please review if the file is in the correct pattern!");
+                        Console.WriteLine(resourceManager.GetString("BasicApplicationStructureSectionExists"));
                     }
 
                     // Here the application will verify if the highlight file don't exists and if is true another one will be created.
                     if (!File.Exists($"{baseFolder}\\{fileNamesList[2]}.txt"))
                     {
                         File.WriteAllText($"{baseFolder}\\{fileNamesList[2]}.txt", "", Encoding.UTF8);
-                        Console.WriteLine($"[INFO] Hightlight file '{fileNamesList[2]}.txt' has been created inside the folder.");
+                        //Console.WriteLine($"[INFO] Hightlight file '{fileNamesList[2]}.txt' has been created inside the folder.");
+                        Console.WriteLine(resourceManager.GetString("BasicApplicationStructureHighlightCreated"), fileNamesList[2]);
                     }
                     else
                     {
-                        Console.WriteLine($"[INFO] Highlight file already exist, please put the parameter names on it!");
+                        //Console.WriteLine($"[INFO] Highlight file already exist, please put the parameter names on it!");
+                        Console.WriteLine(resourceManager.GetString("BasicApplicationStructureHighlightExists"));
                     }
 
                     // Adding a stand-by in the program so the user can read this section informations and then the screen will be cleared.
-                    Console.Write("\nPress any key to proceed...");
+                    // Console.Write("\nPress any key to proceed...");
+                    Console.WriteLine(resourceManager.GetString("PressAnyKeyToProceed"));
                     Console.ReadKey();
                     Console.Clear();
                 }
             }
             catch (Exception exception)
             {
-                ProgramExtensions.PrintGenericErrorException(exception);
+                ProgramExtensions.PrintGenericErrorException(resourceManager, exception);
             }
         }
 
-        public static void DocumentBasicInformation(out string? titleText, out string? documentAuthor)
+        public static void DocumentBasicInformation(ResourceManager resourceManager, out string? titleText, out string? documentAuthor)
         {
             Console.WriteLine("======================================\n" +
-                              "          DOCUMENT PROPERTIES\n" +
+                              resourceManager.GetString("DocumentBasicInformationTitle") +
                               "======================================");
-            //Console.WriteLine("\n-- DOCUMENT PROPERTIES --");
-            Console.WriteLine("[INFO] This step is to input some informations about the properties of the document.\n");
+            Console.WriteLine(resourceManager.GetString("DocumentBasicInformationDescription"));
 
             // Registering the user input for document title.
-            Console.Write("> What is the title of the document? (The title will be the result file name too)\nTitle: ");
+            Console.Write(resourceManager.GetString("DocumentBasicInformationTitleInput"));
 
             // This regex will allow the application to only use characters and numbers so it wont't generate an error when creating the .docx file.
             Regex regexTitleText = new("[A-Za-z0-9_-]+");
@@ -126,12 +139,12 @@ namespace APITestDocumentCreator
                 if (titleText == "")
                 {
                     titleTextValidation = false;
-                    Console.Write("\n[INFO] The title can't be empty!\nPlease insert a new title: ");
+                    Console.Write(resourceManager.GetString("DocumentBasicInformationTitleInputEmptyValidation"));
                 }
                 else if (regexTitleText.IsMatch(titleText) == false)
                 {
                     titleTextValidation = false;
-                    Console.Write("\n[INFO] The title text can only contain the following:\n- NUMBERS (0-9)\n- ALPHABETICAL CHARACTERS (A-Z)\n- UNDERSCORE (_)\n- HYPHEN (-)\n\nPlease insert a new title: ");
+                    Console.Write(resourceManager.GetString("DocumentBasicInformationTitleInputRegexValidation"));
                 }
                 else
                 {
@@ -145,75 +158,65 @@ namespace APITestDocumentCreator
             Console.Clear();
         }
 
-        public static void DataPatternApresentationAndVerification()
+        public static void DataPatternApresentationAndVerification(ResourceManager resourceManager)
         {
             Console.WriteLine("======================================\n" +
-                              "   DATA FILES - PATTERN EXPLANATION\n" +
+                              resourceManager.GetString("DataPatternExplanationTitle") +
                               "======================================");
-            Console.WriteLine("[INFO] This is an important step of the application, where is explained how the 4 types of input files patterns are, pay attention to the details bellow and don't forget that each field in the files are separated with a semi-colon (;)\n");
-            Console.WriteLine("[INFO] The files created in the base folder structure have an example showing how to application works, don't change the data inside if you wanna check how it works.\n");
-
-            Console.WriteLine("\nPress any key to proceed to the first part...\n");
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationDescription"));
+            Console.WriteLine(resourceManager.GetString("PressAnyKeyToProceed"));
             Console.ReadKey();
 
             Console.WriteLine("------------------------------\n" +
                               "      INPUT_DATA LAYOUT\n" +
                               "------------------------------");
-            Console.WriteLine("[INFO] The main file of the application, this is where all API request / response logs should be stored.\n");
-
-            Console.WriteLine("1) SECTION NUMBER*: Section number in which all the input will be showed in the document, if the section has more than one input line, apply the same number but write in the order of appeareance.");
-            Console.WriteLine("2) METHOD NAME*: Name of the API endpoint that will appear in the document close to the JSON request and response.");
-            Console.WriteLine("3) URL*: URL used in the request to the API.");
-            Console.WriteLine("4) REQUEST*: JSON used in the request (don't need pre-formatting).");
-            Console.WriteLine("5) RESPONSE*: JSON received in the response (don't need pre-formatting).");
-
-            Console.WriteLine("\n* - Required field.");
-
-            Console.WriteLine("\nPress any key to proceed to the next part...\n");
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationInputDataDescription"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationInputDataDescriptionSectionNumber"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationInputDataDescriptionMethodName"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationInputDataDescriptionURL"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationInputDataDescriptionRequest"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationInputDataDescriptionResponse"));
+            Console.WriteLine(resourceManager.GetString("RequiredField"));
+            Console.WriteLine(resourceManager.GetString("PressAnyKeyToProceed"));
             Console.ReadKey();
 
             Console.WriteLine("--------------------------------\n" +
                               "   SECTION_INFORMATION LAYOUT\n" +
                               "--------------------------------");
-            Console.WriteLine("[INFO] In this file you will fill all informations about the sectors of the document.\n");
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationSectionInformationDescription"));
 
-            Console.WriteLine("1) SECTION NUMBER*: Number of the section");
-            Console.WriteLine("2) SECTION NAME*: The name used to define the section.");
-            Console.WriteLine("3) DESCRIPTION: A text that should briefly explain what happened in the sector.");
-
-            Console.WriteLine("\n* - Required field.");
-
-            Console.WriteLine("\nPress any key to proceed to the next part...\n");
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationSectionInformationDescriptionSectionNumber"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationSectionInformationDescriptionSectionName"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationSectionInformationDescriptionSection"));
+            Console.WriteLine(resourceManager.GetString("RequiredField"));
+            Console.WriteLine(resourceManager.GetString("PressAnyKeyToProceed"));
             Console.ReadKey();
 
             Console.WriteLine("--------------------------------\n" +
                               "  HIGHLIGHT_PARAMETERS LAYOUT\n" +
                               "--------------------------------");
-            Console.WriteLine("[INFO] Here the objective is to read the parameters that you want to be highlighted in yellow, this part is completely optional, but if you wanna highlight anything in the JSON, some fields are required.\n");
-
-            Console.WriteLine("1) PARAMETER NAME*: Name of the parameter inside the JSON (both request and response)");
-            Console.WriteLine("2) SECTION NUMBER REFERENCE: If you want to highlight a parameter only in a specific sector, just put the number in this field.");
-            Console.WriteLine("3) PARAMETER NAME REFERENCE: If the parameter that will be highlighted is inside an array in the JSON with multiple objects, an example, you can define the name of the parameter that will be used as reference.");
-            Console.WriteLine("4) PARAMETER VALUE REFERENCE: If the parameter that will be highlighted is inside an array in the JSON with multiple objects, an example, you can define the value of the parameter that will be used as reference.");
-
-            Console.WriteLine("\n* - Required field.");
-            Console.WriteLine("PS: If you wanna highlight a parameter based on another parameter / value reference, all fields need to be filled!");
-
-            Console.WriteLine("\nPress any key to proceed to the next part...\n");
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationHighlightParametersDescription"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationHighlightParametersDescriptionParameterName"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationHighlightParametersDescriptionSectionNumberReference"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationHighlightParametersDescriptionParameterNameReference"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationHighlightParametersDescriptionParameterValueReference"));
+            Console.WriteLine(resourceManager.GetString("RequiredField"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationHighlightParametersDescriptionReminder"));
+            Console.WriteLine(resourceManager.GetString("PressAnyKeyToProceed"));
             Console.ReadKey();
 
             Console.WriteLine("--------------------------------\n" +
-                              "     PICTURES NAME PATTERN\n" +
+                              resourceManager.GetString("DataPatternExplanationPicturesTitle") +
                               "--------------------------------");
-            Console.WriteLine("[INFO] This step is completely optional, but if you wanna put some images on each section of the document, a pattern must be followed.\n");
-            Console.WriteLine("IMAGE NAME: Each image must be declare by indicating its section and order, an example is '2_1.png' where this image is in sector 2 and is the first image to be showed");
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationPicturesDescription"));
+            Console.WriteLine(resourceManager.GetString("DataPatternExplanationPicturesImageName"));
 
-            Console.WriteLine("\n> Before continue to the validation of all 4 types of files, check if there is data inside the text files and that each one follows the respective patterns above.\n\nProceed?");
+            Console.WriteLine(resourceManager.GetString("DataPatternValidationQuestion"));
 
             bool patternDecisionLoop = true;
             while (patternDecisionLoop)
             {
-                Console.Write("- Type '1' if it's OK\n- Type '2' to exit application\n\nAwaiting user decision... ");
+                Console.Write(resourceManager.GetString("DataPatternValidationQuestionOptions"));
                 ConsoleKeyInfo patternDecision = Console.ReadKey();
 
                 switch (patternDecision.Key)
@@ -227,11 +230,13 @@ namespace APITestDocumentCreator
                         Console.Clear();
                         break;
                     case ConsoleKey.NumPad2:
-                        Console.WriteLine("\n\n[INFO] Exiting application...");
+                        Console.WriteLine(resourceManager.GetString("ExitingApplication"));
+                        Thread.Sleep(3000);
                         Environment.Exit(0);
                         break;
                     case ConsoleKey.D2:
-                        Console.WriteLine("\n\n[INFO] Exiting application...");
+                        Console.WriteLine(resourceManager.GetString("ExitingApplication"));
+                        Thread.Sleep(3000);
                         Environment.Exit(0);
                         break;
                     default:
@@ -240,14 +245,14 @@ namespace APITestDocumentCreator
             }
         }
 
-        public static void InputFilesValidation(string baseFolder, string picturesFolder, bool exampleRequested, string[] fileNamesList, out string[] picturesList, out List<InputData> dataList, out List<HighlightParameters> highlightParametersList, out List<SectionProperties> sectionList)
+        public static void InputFilesValidation(ResourceManager resourceManager, string baseFolder, string picturesFolder, bool exampleRequested, string[] fileNamesList, out string[] picturesList, out List<InputData> dataList, out List<HighlightParameters> highlightParametersList, out List<SectionProperties> sectionList)
         {
             if (exampleRequested == false)
             {
                 Console.WriteLine("======================================\n" +
-                                  "        INPUT FILES VALIDATION\n" +
-                                  "======================================" +
-                                  "\n[INFO] Here the application will make some validations on each file to verify if it follows what is expected.\n");
+                                  resourceManager.GetString("InputFilesValidationTitle") +
+                                  "======================================");
+                Console.WriteLine(resourceManager.GetString("InputFilesValidationDescription"));
             }
 
             // Initializing key variables.
@@ -281,12 +286,12 @@ namespace APITestDocumentCreator
                             // Some field validations before proceed with the creation of the document.
                             if (dataFields.Any(field => field.Trim().Equals("")) == true)
                             {
-                                inputErrorList.Add($"[ERROR | LINE {inputFileLineCounter}] One of the fields in this line are empty!");
+                                inputErrorList.Add(string.Format(resourceManager.GetString("InputFilesValidationInputDataTest1"), inputFileLineCounter));
                                 validationStatus = false;
                             }
                             else if (inputSectionNumberIsValid == false)
                             {
-                                inputErrorList.Add($"[ERROR | LINE {inputFileLineCounter}] The first field of the line must be a INTEGER NUMBER!");
+                                inputErrorList.Add(string.Format(resourceManager.GetString("InputFilesValidationInputDataTest2"), inputFileLineCounter));
                                 validationStatus = false;
                             }
                         }
@@ -324,13 +329,9 @@ namespace APITestDocumentCreator
                     }
                 }
             }
-            catch (IOException ioException)
-            {
-                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
-            }
             catch (Exception exception)
             {
-                PrintGenericErrorException(exception);
+                PrintGenericErrorException(resourceManager, exception);
             }
 
             try
@@ -354,12 +355,12 @@ namespace APITestDocumentCreator
                             // Some field validations before proceed with the creation of the document.
                             if (sectionProperties[0].Trim() == "" || sectionProperties[1].Trim() == "")
                             {
-                                sectionErrorList.Add($"\n[ERROR | LINE {sectionFileLineCounter}] Section Number and / or Section Title are empty and both are need for the application!");
+                                sectionErrorList.Add(string.Format(resourceManager.GetString("InputFilesValidationSectionInformationTest1"), sectionFileLineCounter));
                                 validationStatus = false;
                             }
                             else if (sectionNumberIsValid == false)
                             {
-                                sectionErrorList.Add($"\n[ERROR | LINE {sectionNumber}] The first field of the line must be a INTEGER NUMBER!");
+                                sectionErrorList.Add(string.Format(resourceManager.GetString("InputFilesValidationSectionInformationTest2"), sectionFileLineCounter));
                                 validationStatus = false;
                             }
                         }
@@ -393,13 +394,9 @@ namespace APITestDocumentCreator
                     }
                 }
             }
-            catch (IOException ioException)
-            {
-                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
-            }
             catch (Exception exception)
             {
-                PrintGenericErrorException(exception);
+                PrintGenericErrorException(resourceManager, exception);
             }
 
             // Retrieving the parameters name list in the .txt file that the user wants to highlight in the document.
@@ -433,7 +430,7 @@ namespace APITestDocumentCreator
                                 {
                                     if (highlightParameterProperties[3].Trim() == "")
                                     {
-                                        highlightErrorList.Add($"[ERROR | LINE {highlightFileLineCounter}] The field 'Parameter Value' cannot be empty if the field 'Parameter Name' is filled!");
+                                        highlightErrorList.Add(string.Format(resourceManager.GetString("InputFilesValidationSectionInformationTest2"), highlightFileLineCounter));
                                         validationStatus = false;
                                     }
                                 }
@@ -480,13 +477,9 @@ namespace APITestDocumentCreator
                     }
                 }
             }
-            catch (IOException ioException)
-            {
-                Console.WriteLine($"\n\n[ERROR] Another program is using the file, you need to close it before run this application!\n> DETAILS: {ioException.Message}");
-            }
             catch (Exception exception)
             {
-                PrintGenericErrorException(exception);
+                PrintGenericErrorException(resourceManager, exception);
             }
 
             // Retrieving all prints stored in the 'Pictures' folder.
@@ -497,24 +490,25 @@ namespace APITestDocumentCreator
                 Console.WriteLine("4) PICTURES STATUS: [OK]");
                 if (picturesList.Length > 0)
                 {
-                    Console.WriteLine($"[INFO] {dataList.Count} images were detected in the 'Pictures' folder!");
+                    Console.WriteLine(resourceManager.GetString("InputFilesValidationPicturesFolderCounterMoreThanZero"), dataList.Count);
                 }
                 else
                 {
-                    Console.WriteLine($"[INFO] Nothing was found in the 'Pictures' folder!");
+                    Console.WriteLine(resourceManager.GetString("InputFilesValidationPicturesFolderCounterEqualZero"));
                 }
 
                 if (validationStatus == true)
                 {
-                    Console.WriteLine($"\n[INFO] All validations are OK and you can proceed with the creation of the document!\n");
-                    Console.WriteLine("Press any key to start creation...\n");
+                    Console.WriteLine(resourceManager.GetString("InputFilesValidationPassed"));
+                    Console.WriteLine(resourceManager.GetString("PressAnyKeyStartCreation"));
                     Console.ReadKey();
                     Console.Clear();
                 }
                 else
                 {
-                    Console.WriteLine($"\n[ERROR] Some validations have failed, fix every error showed before and restart the application!");
-                    Console.WriteLine("Closing program...\n");
+                    Console.WriteLine(resourceManager.GetString("InputFilesValidationFailed"));
+                    Console.WriteLine(resourceManager.GetString("PressAnyKeyToExitApplication"));
+                    Console.ReadKey();
                     Environment.Exit(0);
                 }
             }
@@ -687,9 +681,10 @@ namespace APITestDocumentCreator
             }
         }
 
-        public static void PrintGenericErrorException(Exception exception)
+        public static void PrintGenericErrorException(ResourceManager resourceManager, Exception exception)
         {
-            Console.WriteLine($"\n[ERROR]: An error has occurred! See details below: \n{exception.Message}");
+            //Console.WriteLine($"\n[ERROR]: An error has occurred! See details below: \n{exception.Message}");
+            Console.WriteLine(resourceManager.GetString("PrintGenericErrorException"));
         }
     }
 }

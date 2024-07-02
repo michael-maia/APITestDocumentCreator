@@ -1,0 +1,392 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BasicApplicationStructureCreated" xml:space="preserve">
+    <value>[INFO] Criada estrutura básica no seguinte caminho: {0}</value>
+    <comment>Variable is 'baseFolder'</comment>
+  </data>
+  <data name="BasicApplicationStructureDescription" xml:space="preserve">
+    <value>## Nesta etapa a aplicação vai verificar se as pastas e arquivos de base já foram criados ou precisam ser criados.
+</value>
+  </data>
+  <data name="BasicApplicationStructureExists" xml:space="preserve">
+    <value>[INFO] Estrutura básica do arquivo já existe! Não precisa criar-la. O caminho é {0}</value>
+    <comment>Variable is 'baseFolder'</comment>
+  </data>
+  <data name="BasicApplicationStructureHighlightCreated" xml:space="preserve">
+    <value>[INFO] Arquivo de destaques '{0}.txt' foi criado dentro da pasta.</value>
+    <comment>Variable is 'fileNamesList[2]'</comment>
+  </data>
+  <data name="BasicApplicationStructureHighlightExampleCreated" xml:space="preserve">
+    <value>[INFO] Arquivo de destaque '{0}.txt' foi criado dentro da pasta, com um exemplo dentro.</value>
+    <comment>Variable is 'fileNamesList[2]'</comment>
+  </data>
+  <data name="BasicApplicationStructureHighlightExists" xml:space="preserve">
+    <value>[INFO] Arquivo de destaque já existe, por favor coloque os nomes dos parametros nele caso deseja dar destaque em algum parametro!</value>
+  </data>
+  <data name="BasicApplicationStructureInputCreated" xml:space="preserve">
+    <value>[INFO] Arquivo de entrada '{0}.txt' foi criado dentro da pasta.</value>
+    <comment>Variable is 'fileNamesList[0]'</comment>
+  </data>
+  <data name="BasicApplicationStructureInputExampleCreated" xml:space="preserve">
+    <value>[INFO] Arquivo de entrada '{0}.txt' foi criado dentro da pasta, com um exemplo dentro.</value>
+    <comment>Variable is 'fileNamesList[0]'</comment>
+  </data>
+  <data name="BasicApplicationStructureInputExists" xml:space="preserve">
+    <value>[INFO] Arquivo de entrada já existe, por favor verifique os dados nele!</value>
+  </data>
+  <data name="BasicApplicationStructureSectionCreated" xml:space="preserve">
+    <value>[INFO] Arquivo de seção '{0}.txt' foi criado dentro da pasta.</value>
+    <comment>Variable is 'fileNamesList[1]'</comment>
+  </data>
+  <data name="BasicApplicationStructureSectionExampleCreated" xml:space="preserve">
+    <value>[INFO] Arquivo de seção '{0}.txt' foi criado dentro da pasta, com um exemplo dentro.</value>
+    <comment>Variable is 'fileNamesList[1]'</comment>
+  </data>
+  <data name="BasicApplicationStructureSectionExists" xml:space="preserve">
+    <value>[INFO] Arquivo de seção já existe, por favor revise se o arquivo está no padrão correto!</value>
+  </data>
+  <data name="BasicApplicationStructureTitle" xml:space="preserve">
+    <value>     ESTRUTURA BÁSICA DA APLICAÇÃO
+</value>
+  </data>
+  <data name="DataPatternExplanationDescription" xml:space="preserve">
+    <value>## Esta é uma etapa importante da aplicação, onde é explicado como o padrão dos 4 tipos de arquivos de entrada são, preste atenção aos detalhes abaixo e não se esqueça de que cada campo é separado por ponto e vírgula (;) nos arquivos de texto.</value>
+  </data>
+  <data name="DataPatternExplanationHighlightParametersDescription" xml:space="preserve">
+    <value>## Aqui o objetivo é ler os parametros que você deseja que seja destacado em amarelo, esta parte é completamente opcional, mas se deseja destacar qualquer coisa no JSON alguns campos são obrigatórios.
+</value>
+  </data>
+  <data name="DataPatternExplanationHighlightParametersDescriptionParameterName" xml:space="preserve">
+    <value>1) NOME DO PARÂMETRO*: Nome do parâmetro dentro do JSON (pode ser na requisição ou resposta).</value>
+  </data>
+  <data name="DataPatternExplanationHighlightParametersDescriptionParameterNameReference" xml:space="preserve">
+    <value>3) REFERÊNCIA DE NOME DO PARÂMETRO: Se o parâmetro que vai ser destacado está dentro de uma lista no JSON com múltiplos objetos, por exemplo, você pode definir o nome do parâmetro que será usado como referência.</value>
+  </data>
+  <data name="DataPatternExplanationHighlightParametersDescriptionParameterValueReference" xml:space="preserve">
+    <value>4) REFERÊNCIA DE VALOR DO PARÂMETRO: Se o parâmetro que vai ser destacado está dentro de uma lista no JSON com múltiplos objetos, por exemplo, você pode definir o valor do parâmetro que será usado como referência.</value>
+  </data>
+  <data name="DataPatternExplanationHighlightParametersDescriptionReminder" xml:space="preserve">
+    <value>OBS: Se você deseja destacar um parâmetro baseado em outro parâmetro / valor como referência, todos os campos são obrigatórios!</value>
+  </data>
+  <data name="DataPatternExplanationHighlightParametersDescriptionSectionNumberReference" xml:space="preserve">
+    <value>2) REFERÊNCIA DE NÚMERO DO SEÇÃO: Se deseja destacar um parâmetro somente em uma seção específica, preeencha somente somente este campo de referência.</value>
+  </data>
+  <data name="DataPatternExplanationInputDataDescription" xml:space="preserve">
+    <value>## Este é o arquivo principal da aplicação, aqui é onde os logs de todas as requisições / respostas da API devem ser armazenados.
+</value>
+  </data>
+  <data name="DataPatternExplanationInputDataDescriptionMethodName" xml:space="preserve">
+    <value>2) NOME DO MÉTODO*: Nome do endpoint da API onde vai aparecer no documento junto com sua respectiva requisição e resposta.</value>
+  </data>
+  <data name="DataPatternExplanationInputDataDescriptionRequest" xml:space="preserve">
+    <value>4) REQUISIÇÃO*: JSON usado na requisição da API (não precisa de pré-formatação).</value>
+  </data>
+  <data name="DataPatternExplanationInputDataDescriptionResponse" xml:space="preserve">
+    <value>5) RESPOSTA*: JSON recebido na repossta da API (não precisa de pré-formatação).</value>
+  </data>
+  <data name="DataPatternExplanationInputDataDescriptionSectionNumber" xml:space="preserve">
+    <value>1) NÚMERO DA SEÇÃO*: Número da seção do qual todas as entradas serão apresentadas no documento, se a seção tiver mais de uma linha de entrada, coloque o mesmo número mas escreva na ordem em que deve aparecer.</value>
+  </data>
+  <data name="DataPatternExplanationInputDataDescriptionURL" xml:space="preserve">
+    <value>3) URL*: URL usada na requisição para a API.</value>
+  </data>
+  <data name="DataPatternExplanationPicturesDescription" xml:space="preserve">
+    <value>## Essa é etapa é completamente opcional, porém se deseja colocar algumas imagens em cada seção do documento, um padrão deve ser seguido.
+</value>
+  </data>
+  <data name="DataPatternExplanationPicturesImageName" xml:space="preserve">
+    <value>NOME DA IMAGEM: Cada imagem deve ser declarada através da indicação da sua seção e ordem, um exemplo é '2_1.png' onde esta imagem está na seção 2 e será a primeira imagem mostrada.</value>
+  </data>
+  <data name="DataPatternExplanationPicturesTitle" xml:space="preserve">
+    <value>     PADRÃO DA PASTA PICTURES
+</value>
+  </data>
+  <data name="DataPatternExplanationSectionInformationDescription" xml:space="preserve">
+    <value>## Neste arquivo você deve preenche-lo com todas as informações referente aos setores do documento.
+</value>
+  </data>
+  <data name="DataPatternExplanationSectionInformationDescriptionSection" xml:space="preserve">
+    <value>3) DESCRIÇÃO: Um texto que deve brevemente explicar o que aconteceu nesse setor.</value>
+  </data>
+  <data name="DataPatternExplanationSectionInformationDescriptionSectionName" xml:space="preserve">
+    <value>2) NOME DA SEÇÃO*: Nome usado para definir a seção.</value>
+  </data>
+  <data name="DataPatternExplanationSectionInformationDescriptionSectionNumber" xml:space="preserve">
+    <value>1) NÚMERO DA SEÇÃO*: Número da seção a ser apresentado no documento.</value>
+  </data>
+  <data name="DataPatternExplanationTitle" xml:space="preserve">
+    <value>ARQUIVOS DE DADOS - EXPLICAÇÃO DO PADRÃO
+</value>
+  </data>
+  <data name="DataPatternValidationQuestion" xml:space="preserve">
+    <value>
+&gt; Antes de continuar com a validação de todos os quatro arquivos, revise se os dados inseridos estão de acordo com seu respectivo padrão.
+
+Opção: </value>
+  </data>
+  <data name="DataPatternValidationQuestionOptions" xml:space="preserve">
+    <value>- Digite '1' se estiver OK
+- Digite '2' para sair da aplicação
+
+Opção: </value>
+  </data>
+  <data name="DocumentBasicInformationDescription" xml:space="preserve">
+    <value>## Esta etapa é para colocar algumas informações sobre as propriedades do documento.
+</value>
+  </data>
+  <data name="DocumentBasicInformationTitle" xml:space="preserve">
+    <value>       PROPRIEDADES DO DOCUMENTO
+</value>
+  </data>
+  <data name="DocumentBasicInformationTitleInput" xml:space="preserve">
+    <value>&gt; Qual é o título do documento? (O título também vai ser o nome do arquivo final)
+Título: </value>
+  </data>
+  <data name="DocumentBasicInformationTitleInputEmptyValidation" xml:space="preserve">
+    <value>
+[INFO] O título não pode ser vazio! 
+Por favor insira um novo título: </value>
+  </data>
+  <data name="DocumentBasicInformationTitleInputRegexValidation" xml:space="preserve">
+    <value>[INFO] O texto do título só pode conter o seguinte:
+- NÚMEROS (0-9)
+- CARACTERES ALFABÉTICOS  (A-Z)
+- UNDERLINE (_)
+- HÍFEN (-)
+
+Por favor insira um novo título: </value>
+  </data>
+  <data name="DocumentCreatedConfirmation" xml:space="preserve">
+    <value>[INFO] Documento criado no seguinte caminho: {0}\{1}.docx</value>
+    <comment>Variables are 'resultFolder' and 'titleText'</comment>
+  </data>
+  <data name="DocumentCreationAlert" xml:space="preserve">
+    <value>[INFO] Iniciando processo de criação.</value>
+  </data>
+  <data name="DocumentCreationTitle" xml:space="preserve">
+    <value>          CRIAÇÃO DE DOCUMENTO
+</value>
+  </data>
+  <data name="ExitingApplication" xml:space="preserve">
+    <value>
+
+[INFO] Saindo da aplicação...</value>
+  </data>
+  <data name="InformationExampleDocumentation" xml:space="preserve">
+    <value>[INFO] Se é sua primeira vez usando essa aplicação, é possível criar um documento de exemplo para ver como funciona, você deseja prosseguir com o exemplo?
+</value>
+  </data>
+  <data name="InputFilesValidationDescription" xml:space="preserve">
+    <value>## Aqui a aplicação vai realizar algumas validações em cada arquivo para verificar se está de acordo com o esperado.
+</value>
+  </data>
+  <data name="InputFilesValidationFailed" xml:space="preserve">
+    <value>
+[ERROR] Algumas validações falharam, ajuste cada erro antes de reiniciar a aplicação!</value>
+  </data>
+  <data name="InputFilesValidationHighlightParametersTest1" xml:space="preserve">
+    <value>[ERROR | LINHA {0}] O campo 'Valor do Parâmetro' não pode ser vazio se o campo 'Nome do Parâmetro' estiver preenchido!</value>
+    <comment>Variable is 'highlightFileLineCounter'</comment>
+  </data>
+  <data name="InputFilesValidationInputDataTest1" xml:space="preserve">
+    <value>[ERROR | LINHA {0}] Um dos campos desta linha está vazio!</value>
+    <comment>Variable is 'inputFileLineCounter'</comment>
+  </data>
+  <data name="InputFilesValidationInputDataTest2" xml:space="preserve">
+    <value>[ERROR | LINHA {0}] O primeiro campo da linha deve ser um NÚMERO INTEIRO!</value>
+    <comment>Variable is 'inputFileLineCounter'</comment>
+  </data>
+  <data name="InputFilesValidationPassed" xml:space="preserve">
+    <value>
+[INFO] Todas as validações estão OK e você pode proceder com a criação do documento!
+</value>
+  </data>
+  <data name="InputFilesValidationPicturesFolderCounterEqualZero" xml:space="preserve">
+    <value>[INFO] Nada foi encontrado no diretório 'Pictures'.</value>
+  </data>
+  <data name="InputFilesValidationPicturesFolderCounterMoreThanZero" xml:space="preserve">
+    <value>[INFO] {0} arquivo(s) encontrado(s).</value>
+    <comment>Variable is 'dataList.Count'</comment>
+  </data>
+  <data name="InputFilesValidationSectionInformationTest1" xml:space="preserve">
+    <value>[ERROR | LINHA {0}] Número de seção e / ou título da seção estão vázios e ambos são necessários para a aplicação!</value>
+    <comment>Variable is 'sectionFileLineCounter'</comment>
+  </data>
+  <data name="InputFilesValidationSectionInformationTest2" xml:space="preserve">
+    <value>[ERROR | LINHA {0}] O primeiro campo da linha deve ser um NÚMERO INTEIRO!</value>
+    <comment>Variable is 'sectionFileLineCounter'</comment>
+  </data>
+  <data name="InputFilesValidationTitle" xml:space="preserve">
+    <value>         VALIDAÇÃO DOS ARQUIVOS DE ENTRADA
+</value>
+  </data>
+  <data name="JSONDescriptionWord" xml:space="preserve">
+    <value>Descrição</value>
+  </data>
+  <data name="JSONRequisitionWord" xml:space="preserve">
+    <value>Requisição</value>
+  </data>
+  <data name="JSONResponseWord" xml:space="preserve">
+    <value>Resposta</value>
+  </data>
+  <data name="PressAnyKeyStartCreation" xml:space="preserve">
+    <value>Pressione alguma tecla para iniciar a criação...
+</value>
+  </data>
+  <data name="PressAnyKeyToExitApplication" xml:space="preserve">
+    <value>Pressione qualquer tecla para sair da aplicação...</value>
+  </data>
+  <data name="PressAnyKeyToProceed" xml:space="preserve">
+    <value>
+Pressione alguma tecla para proceder...</value>
+  </data>
+  <data name="PrintGenericErrorException" xml:space="preserve">
+    <value>[ERROR]: Ocorreu um erro! Veja os detalhes abaixo: 
+{0}</value>
+    <comment>Variable is '{exception.Message}'</comment>
+  </data>
+  <data name="RequiredField" xml:space="preserve">
+    <value>
+* - Campo obrigatório.</value>
+  </data>
+  <data name="UserDecisionApplicationLanguage" xml:space="preserve">
+    <value>
+[INFO] Você escolheu a língua Português Brasileiro!
+</value>
+  </data>
+  <data name="UserDecisionExampleDocumentation" xml:space="preserve">
+    <value>- Aperte '1' para criar o exemplo
+- Aperte '2' para customizar os dados de entrada
+
+Opção: </value>
+  </data>
+  <data name="UserDecisionOptionOneExampleDocumentation" xml:space="preserve">
+    <value>
+
+[INFO] Usuário escolheu proceder com o exemplo!
+</value>
+  </data>
+  <data name="UserDecisionOptionTwoExampleDocumentation" xml:space="preserve">
+    <value>
+
+[INFO] Usuário vai colocar seus próprios dados!
+</value>
+  </data>
+</root>

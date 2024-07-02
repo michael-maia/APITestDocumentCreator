@@ -2,6 +2,8 @@
 using NPOI;
 using NPOI.XWPF.UserModel;
 using System.Drawing;
+using System.Globalization;
+using System.Resources;
 
 namespace APITestDocumentCreator
 {
@@ -11,41 +13,83 @@ namespace APITestDocumentCreator
         {
             Console.WriteLine("======================================\n" +
                               "       API TEST DOCUMENT CREATOR\n" +
-                              "======================================" +
-                              "\n[INFO] If is your first time using this application, it's possible to create an example document to see how it works, do you wanna proceed with this example?");
+                              "======================================");
+            Console.WriteLine("[INFO] Welcome!! Before we start with the application you have to choose which language do you want to see.");
+            Console.WriteLine("[INFO] Bem-vindo!! Antes de começarmos com a aplicação, você deve escolher qual linguagem quer ver.");
 
-            bool wasRequestedExample = false;
-            bool correctButtonPressed = false;
+            bool languageCorrectButtonPressed = false;
 
-            while (correctButtonPressed != true)
+            while (languageCorrectButtonPressed != true)
             {
-                Console.Write("\n- Type '1' to create example\n- Type '2' to customize input data\n\nAwaiting user decision... ");
+                Console.WriteLine("\nChoose one of the options below / Escolha uma das opções abaixo:\n\n1 - English (EN)\n2 - Português Brasileiro (PT-BR)\n");
+                Console.Write("Option / Opção: ");
+                ConsoleKeyInfo languageDecision = Console.ReadKey();
+                Console.WriteLine();
+
+                switch (languageDecision.Key)
+                {
+                    case ConsoleKey.NumPad1:
+                        languageCorrectButtonPressed = true;
+                        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en");
+                        break;
+                    case ConsoleKey.D1:
+                        languageCorrectButtonPressed = true;
+                        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en");
+                        break;
+                    case ConsoleKey.NumPad2:
+                        languageCorrectButtonPressed = true;
+                        Thread.CurrentThread.CurrentUICulture = new CultureInfo("pt-br");
+                        break;
+                    case ConsoleKey.D2:
+                        languageCorrectButtonPressed = true;
+                        Thread.CurrentThread.CurrentUICulture = new CultureInfo("pt-br");
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // Creating a instance of the resource manager so the application can access all strings stored in the dictionary based on the CultureInfo chosen before.
+            ResourceManager stringResourceManager = new ResourceManager("APITestDocumentCreator.Resources.PrintStrings", typeof(Program).Assembly);
+
+            // Return to the user which language was chosen.
+            Console.WriteLine(stringResourceManager.GetString("UserDecisionApplicationLanguage"));
+            Thread.Sleep(3000);
+            Console.Clear();
+
+            Console.WriteLine(stringResourceManager.GetString("InformationExampleDocumentation"));
+            bool wasRequestedExample = false;
+            bool exampleCorrectButtonPressed = false;
+
+            while (exampleCorrectButtonPressed != true)
+            {
+                Console.Write(stringResourceManager.GetString("UserDecisionExampleDocumentation"));
                 ConsoleKeyInfo exampleDecision = Console.ReadKey();
 
                 switch (exampleDecision.Key)
                 {
                     case ConsoleKey.NumPad1:
                         wasRequestedExample = true;
-                        correctButtonPressed = true;
-                        Console.WriteLine("\n\n[INFO] User chose to proceed with example!\n");
+                        exampleCorrectButtonPressed = true;
+                        Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionOneExampleDocumentation"));
                         Thread.Sleep(3000);
                         Console.Clear();
                         break;
                     case ConsoleKey.D1:
                         wasRequestedExample = true;
-                        correctButtonPressed = true;
-                        Console.WriteLine("\n\n[INFO] User chose to proceed with example!\n");
+                        exampleCorrectButtonPressed = true;
+                        Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionOneExampleDocumentation"));
                         Thread.Sleep(3000);
                         Console.Clear();
                         break;
                     case ConsoleKey.NumPad2:
-                        correctButtonPressed = true;
-                        Console.WriteLine("\n\n[INFO] User will input it's own data!\n");
+                        exampleCorrectButtonPressed = true;
+                        Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionTwoExampleDocumentation"));
                         Thread.Sleep(3000);
                         break;
                     case ConsoleKey.D2:
-                        correctButtonPressed = true;
-                        Console.WriteLine("\n\n[INFO] User will input it's own data!\n");
+                        exampleCorrectButtonPressed = true;
+                        Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionTwoExampleDocumentation"));
                         Thread.Sleep(3000);
                         break;
                     default:
@@ -64,7 +108,7 @@ namespace APITestDocumentCreator
             string[] fileNamesList = [ inputFileName, sectionFileName, highlightFileName ];
 
             // Create folders and input files necessary for the application.
-            ProgramExtensions.CreateApplicationBasicStructure(baseFolder, resultFolder, picturesFolder, wasRequestedExample, fileNamesList);
+            ProgramExtensions.CreateApplicationBasicStructure(stringResourceManager, baseFolder, resultFolder, picturesFolder, wasRequestedExample, fileNamesList);
 
             // Retrieving basic document information.
             string titleText, documentAuthor;
@@ -76,10 +120,10 @@ namespace APITestDocumentCreator
             }
             else
             {
-                ProgramExtensions.DocumentBasicInformation(out titleText, out documentAuthor);
+                ProgramExtensions.DocumentBasicInformation(stringResourceManager, out titleText, out documentAuthor);
 
                 // Ask the user if the data inside the 'Input_Txt.txt' follows a specific pattern, that it's showed in the console.
-                ProgramExtensions.DataPatternApresentationAndVerification();
+                ProgramExtensions.DataPatternApresentationAndVerification(stringResourceManager);
             }
 
             // Data validation of every input file
@@ -88,15 +132,15 @@ namespace APITestDocumentCreator
             List<HighlightParameters> highlightParametersList; // Holds all JSON parameters that need highlight in the final document.
             List<SectionProperties> sectionList; // List that will inform all properties of each section of the document.
 
-            ProgramExtensions.InputFilesValidation(baseFolder, picturesFolder, wasRequestedExample, fileNamesList, out picturesList, out dataList, out highlightParametersList, out sectionList);
+            ProgramExtensions.InputFilesValidation(stringResourceManager, baseFolder, picturesFolder, wasRequestedExample, fileNamesList, out picturesList, out dataList, out highlightParametersList, out sectionList);
 
             // Creating the .docx document
             using (XWPFDocument document = new())
             {
                 Console.WriteLine("\n======================================\n" +
-                              "          DOCUMENT CREATION\n" +
-                              "======================================");
-                Console.WriteLine("[INFO] Starting creation process.");
+                              stringResourceManager.GetString("DocumentCreationTitle") +
+                              "======================================\n");
+                Console.WriteLine(stringResourceManager.GetString("DocumentCreationAlert"));
 
                 // DOCUMENT PROPERTIES
                 POIXMLProperties properties = document.GetProperties();
@@ -199,7 +243,7 @@ namespace APITestDocumentCreator
                             XWPFParagraph sectionDescription = document.CreateParagraph();
                             ProgramExtensions.ParagraphStylizer(sectionDescription, ParagraphAlignment.BOTH);
 
-                            string sectionDescriptionText = $"Descrição: {sectionNow.Description}";
+                            string sectionDescriptionText = $"{stringResourceManager.GetString("JSONDescriptionWord")}: {sectionNow.Description}";
                             ProgramExtensions.RunStylizer(sectionDescription, 10, sectionDescriptionText, false, UnderlinePatterns.None, "000000", "Calibri", true);
                         }
 
@@ -210,7 +254,7 @@ namespace APITestDocumentCreator
                     XWPFParagraph endpointRequest = document.CreateParagraph();
                     ProgramExtensions.ParagraphStylizer(endpointRequest, ParagraphAlignment.CENTER, TextAlignment.CENTER, Borders.Single);
 
-                    string endpointRequestText = $"REQUISIÇÃO - {data.MethodName.ToUpper()}";
+                    string endpointRequestText = $"{stringResourceManager.GetString("JSONRequisitionWord").ToUpper()} - {data.MethodName.ToUpper()}";
                     ProgramExtensions.RunStylizer(endpointRequest, 12, endpointRequestText, true, UnderlinePatterns.None, "297FC2");
 
                     // ENDPOINT REQUEST TITLE - URL USED
@@ -244,7 +288,7 @@ namespace APITestDocumentCreator
                     XWPFParagraph endpointResponse = document.CreateParagraph();
                     ProgramExtensions.ParagraphStylizer(endpointResponse, ParagraphAlignment.CENTER, TextAlignment.CENTER, Borders.Single);
 
-                    string responseTitleText = $"RESPOSTA - {data.MethodName.ToUpper()}";
+                    string responseTitleText = $"{stringResourceManager.GetString("JSONResponseWord").ToUpper()} - {data.MethodName.ToUpper()}";
                     ProgramExtensions.RunStylizer(endpointResponse, 12, responseTitleText, true, UnderlinePatterns.None, "FF0000");
 
                     // ENDPOINT RESPONSE - JSON TEXT
@@ -261,10 +305,10 @@ namespace APITestDocumentCreator
                 using (FileStream fs = new($"{resultFolder}\\{titleText}.docx", FileMode.Create, FileAccess.Write))
                 {
                     document.Write(fs);
-                    Console.WriteLine($"[INFO] Document created in the following path: {resultFolder}\\{titleText}.docx");
+                    Console.WriteLine(stringResourceManager.GetString("DocumentCreatedConfirmation"), resultFolder, titleText);
                 }
 
-                Console.WriteLine("\nPress any key to proceed with the close of this application...");
+                Console.WriteLine(stringResourceManager.GetString("PressAnyKeyToExitApplication"));
                 Console.ReadKey();
             }
         }
