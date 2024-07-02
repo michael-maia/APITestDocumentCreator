@@ -97,6 +97,8 @@ namespace APITestDocumentCreator
                 }
             }
 
+            Console.Clear();
+
             // Base, pictures and result folder paths for the application, so it can read the input file and export the final .docx
             string baseFolder = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\\API_Test_Document_Creator";
             string resultFolder = $"{baseFolder}\\Result";
@@ -122,8 +124,53 @@ namespace APITestDocumentCreator
             {
                 ProgramExtensions.DocumentBasicInformation(stringResourceManager, out titleText, out documentAuthor);
 
-                // Ask the user if the data inside the 'Input_Txt.txt' follows a specific pattern, that it's showed in the console.
-                ProgramExtensions.DataPatternApresentationAndVerification(stringResourceManager);
+                Console.WriteLine(stringResourceManager.GetString("InformationTutorial"));
+                bool wasRequestedTutorial = false;
+                bool tutorialCorrectButtonPressed = false;
+
+                while (tutorialCorrectButtonPressed != true)
+                {
+                    Console.Write(stringResourceManager.GetString("UserDecisionTutorial"));
+                    ConsoleKeyInfo exampleDecision = Console.ReadKey();
+
+                    switch (exampleDecision.Key)
+                    {
+                        case ConsoleKey.NumPad1:
+                            wasRequestedTutorial = true;
+                            tutorialCorrectButtonPressed = true;
+                            Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionOneTutorial"));
+                            Thread.Sleep(3000);
+                            Console.Clear();
+                            break;
+                        case ConsoleKey.D1:
+                            wasRequestedTutorial = true;
+                            tutorialCorrectButtonPressed = true;
+                            Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionOneTutorial"));
+                            Thread.Sleep(3000);
+                            Console.Clear();
+                            break;
+                        case ConsoleKey.NumPad2:
+                            tutorialCorrectButtonPressed = true;
+                            Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionTwoTutorial"));
+                            Thread.Sleep(3000);
+                            break;
+                        case ConsoleKey.D2:
+                            tutorialCorrectButtonPressed = true;
+                            Console.WriteLine(stringResourceManager.GetString("UserDecisionOptionTwoTutorial"));
+                            Thread.Sleep(3000);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                Console.Clear();
+
+                if (wasRequestedTutorial == true)
+                {
+                    // Ask the user if the data inside the 'Input_Txt.txt' follows a specific pattern, that it's showed in the console.
+                    ProgramExtensions.DataPatternApresentationAndVerification(stringResourceManager);
+                }
             }
 
             // Data validation of every input file

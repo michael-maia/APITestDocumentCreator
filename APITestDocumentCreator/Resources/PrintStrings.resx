@@ -293,6 +293,10 @@ Please insert a new title: </value>
   <data name="InformationExampleDocumentation" xml:space="preserve">
     <value>[INFO] If is your first time using this application, it's possible to create an example document to see how it works, do you want to proceed with this example?</value>
   </data>
+  <data name="InformationTutorial" xml:space="preserve">
+    <value>[INFO] Do you want to proceed without checking the tutorial explaining each file pattern / layout?
+</value>
+  </data>
   <data name="InputFilesValidationDescription" xml:space="preserve">
     <value>## Here the application will make some validations on each file to verify if it follows what is expected.
 </value>
@@ -386,10 +390,27 @@ Option: </value>
 [INFO] User chose to proceed with example!
 </value>
   </data>
+  <data name="UserDecisionOptionOneTutorial" xml:space="preserve">
+    <value>
+
+[INFO] User chose to proceed in the tutorial!</value>
+  </data>
   <data name="UserDecisionOptionTwoExampleDocumentation" xml:space="preserve">
     <value>
 
 [INFO] User will input it's own data!
 </value>
+  </data>
+  <data name="UserDecisionOptionTwoTutorial" xml:space="preserve">
+    <value>
+
+[INFO] User don't need to see the tutorial!</value>
+  </data>
+  <data name="UserDecisionTutorial" xml:space="preserve">
+    <value>
+- Type '1' to proceed with the tutorial
+- Type '2' to avoid tutorial
+
+Option: </value>
   </data>
 </root>

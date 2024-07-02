@@ -242,7 +242,8 @@
 Opção: </value>
   </data>
   <data name="DataPatternValidationQuestionOptions" xml:space="preserve">
-    <value>- Digite '1' se estiver OK
+    <value>
+- Digite '1' se estiver OK
 - Digite '2' para sair da aplicação
 
 Opção: </value>
@@ -291,6 +292,10 @@ Por favor insira um novo título: </value>
   </data>
   <data name="InformationExampleDocumentation" xml:space="preserve">
     <value>[INFO] Se é sua primeira vez usando essa aplicação, é possível criar um documento de exemplo para ver como funciona, você deseja prosseguir com o exemplo?
+</value>
+  </data>
+  <data name="InformationTutorial" xml:space="preserve">
+    <value>[INFO] Você quer continuar sem verificar o tutorial explicando o padrão / layout de cada arquivo?
 </value>
   </data>
   <data name="InputFilesValidationDescription" xml:space="preserve">
@@ -372,7 +377,8 @@ Pressione alguma tecla para proceder...</value>
 </value>
   </data>
   <data name="UserDecisionExampleDocumentation" xml:space="preserve">
-    <value>- Aperte '1' para criar o exemplo
+    <value>
+- Aperte '1' para criar o exemplo
 - Aperte '2' para customizar os dados de entrada
 
 Opção: </value>
@@ -383,10 +389,27 @@ Opção: </value>
 [INFO] Usuário escolheu proceder com o exemplo!
 </value>
   </data>
+  <data name="UserDecisionOptionOneTutorial" xml:space="preserve">
+    <value>
+
+[INFO] Usuário escolheu proceder com o tutorial!</value>
+  </data>
   <data name="UserDecisionOptionTwoExampleDocumentation" xml:space="preserve">
     <value>
 
 [INFO] Usuário vai colocar seus próprios dados!
 </value>
+  </data>
+  <data name="UserDecisionOptionTwoTutorial" xml:space="preserve">
+    <value>
+
+[INFO] Usuário não precisa verificar o tutorial!</value>
+  </data>
+  <data name="UserDecisionTutorial" xml:space="preserve">
+    <value>
+- Aperte '1' para ir ao tutorial
+- Aperte '2' para evitar o tutorial
+
+Opção: </value>
   </data>
 </root>

@@ -504,6 +504,16 @@ namespace APITestDocumentCreator.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [INFO] Do you want to proceed without checking the tutorial explaining each file pattern / layout?
+        ///.
+        /// </summary>
+        internal static string InformationTutorial {
+            get {
+                return ResourceManager.GetString("InformationTutorial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ## Here the application will make some validations on each file to verify if it follows what is expected.
         ///.
         /// </summary>
@@ -724,12 +734,47 @@ namespace APITestDocumentCreator.Resources {
         /// <summary>
         ///   Looks up a localized string similar to 
         ///
+        ///[INFO] User chose to proceed in the tutorial!.
+        /// </summary>
+        internal static string UserDecisionOptionOneTutorial {
+            get {
+                return ResourceManager.GetString("UserDecisionOptionOneTutorial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 
+        ///
         ///[INFO] User will input it&apos;s own data!
         ///.
         /// </summary>
         internal static string UserDecisionOptionTwoExampleDocumentation {
             get {
                 return ResourceManager.GetString("UserDecisionOptionTwoExampleDocumentation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 
+        ///
+        ///[INFO] User don&apos;t need to see the tutorial!.
+        /// </summary>
+        internal static string UserDecisionOptionTwoTutorial {
+            get {
+                return ResourceManager.GetString("UserDecisionOptionTwoTutorial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 
+        ///- Type &apos;1&apos; to proceed with the tutorial
+        ///- Type &apos;2&apos; to avoid tutorial
+        ///
+        ///Option: .
+        /// </summary>
+        internal static string UserDecisionTutorial {
+            get {
+                return ResourceManager.GetString("UserDecisionTutorial", resourceCulture);
             }
         }
     }
