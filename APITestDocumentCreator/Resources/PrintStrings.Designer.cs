@@ -609,6 +609,15 @@ namespace APITestDocumentCreator.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ERROR | LINE {0}] The number of sections defined in this file must be equal to last number in the Input_Data!.
+        /// </summary>
+        internal static string InputFilesValidationSectionInformationTestLastLine {
+            get {
+                return ResourceManager.GetString("InputFilesValidationSectionInformationTestLastLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to         INPUT FILES VALIDATION
         ///.
         /// </summary>

@@ -338,6 +338,10 @@ Please insert a new title: </value>
     <value>[ERROR | LINE {0}] The first field of the line must be a INTEGER NUMBER!</value>
     <comment>Variable is 'sectionFileLineCounter'</comment>
   </data>
+  <data name="InputFilesValidationSectionInformationTestLastLine" xml:space="preserve">
+    <value>[ERROR | LINE {0}] The number of sections defined in this file must be equal to last number in the Input_Data!</value>
+    <comment>Variable is '{sectionList.Last().SectionNumber)}'</comment>
+  </data>
   <data name="InputFilesValidationTitle" xml:space="preserve">
     <value>        INPUT FILES VALIDATION
 </value>

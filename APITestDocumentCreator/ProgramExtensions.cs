@@ -260,6 +260,7 @@ namespace APITestDocumentCreator
             sectionList = Enumerable.Empty<SectionProperties>().ToList();
             highlightParametersList = Enumerable.Empty<HighlightParameters>().ToList();
             picturesList = [];
+            int inputDataLastSectionNumber = 0;
 
             FileStreamOptions options = new() { Access = FileAccess.Read, Mode = FileMode.Open, Options = FileOptions.None };
 
@@ -311,6 +312,9 @@ namespace APITestDocumentCreator
                         inputFileLineCounter++;
                     }
 
+                    // Store the last section number of the input data file so it can be later used to compare with the last number of the section information file.
+                    inputDataLastSectionNumber = (dataList.Last()).SectionNumber;
+
                     if (exampleRequested == false)
                     {
                         Console.Write("1) INPUT_DATA STATUS: ");
@@ -320,10 +324,10 @@ namespace APITestDocumentCreator
                         }
                         else
                         {
-                            Console.WriteLine("[NOT OK]");
+                            Console.WriteLine("[N-OK]");
                             foreach (string errorDetail in inputErrorList)
                             {
-                                Console.WriteLine(errorDetail);
+                                Console.WriteLine($"\t> {errorDetail}");
                             }
                         }
                     }
@@ -376,6 +380,12 @@ namespace APITestDocumentCreator
                         sectionFileLineCounter++;
                     }
 
+                    if(inputDataLastSectionNumber != (sectionList.Last().SectionNumber) == true)
+                    {
+                        sectionErrorList.Add(string.Format(resourceManager.GetString("InputFilesValidationSectionInformationTestLastLine"), sectionList.Last().SectionNumber));
+                        validationStatus = false;
+                    }
+
                     if (exampleRequested == false)
                     {
                         Console.Write("2) SECTION_INFORMATION STATUS: ");
@@ -385,10 +395,10 @@ namespace APITestDocumentCreator
                         }
                         else
                         {
-                            Console.WriteLine("[NOT OK]");
+                            Console.WriteLine("[N-OK]");
                             foreach (string errorDetail in sectionErrorList)
                             {
-                                Console.WriteLine(errorDetail);
+                                Console.WriteLine($"\t> {errorDetail}");
                             }
                         }
                     }
@@ -468,10 +478,10 @@ namespace APITestDocumentCreator
                         }
                         else
                         {
-                            Console.WriteLine("[NOT OK]");
+                            Console.WriteLine("[N-OK]");
                             foreach (string errorDetail in highlightErrorList)
                             {
-                                Console.WriteLine(errorDetail);
+                                Console.WriteLine($"\t> {errorDetail}");
                             }
                         }
                     }

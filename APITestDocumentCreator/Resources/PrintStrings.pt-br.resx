@@ -307,15 +307,15 @@ Por favor insira um novo título: </value>
 [ERROR] Algumas validações falharam, ajuste cada erro antes de reiniciar a aplicação!</value>
   </data>
   <data name="InputFilesValidationHighlightParametersTest1" xml:space="preserve">
-    <value>[ERROR | LINHA {0}] O campo 'Valor do Parâmetro' não pode ser vazio se o campo 'Nome do Parâmetro' estiver preenchido!</value>
+    <value>[ERRO | LINHA {0}] O campo 'Valor do Parâmetro' não pode ser vazio se o campo 'Nome do Parâmetro' estiver preenchido!</value>
     <comment>Variable is 'highlightFileLineCounter'</comment>
   </data>
   <data name="InputFilesValidationInputDataTest1" xml:space="preserve">
-    <value>[ERROR | LINHA {0}] Um dos campos desta linha está vazio!</value>
+    <value>[ERRO | LINHA {0}] Um dos campos desta linha está vazio!</value>
     <comment>Variable is 'inputFileLineCounter'</comment>
   </data>
   <data name="InputFilesValidationInputDataTest2" xml:space="preserve">
-    <value>[ERROR | LINHA {0}] O primeiro campo da linha deve ser um NÚMERO INTEIRO!</value>
+    <value>[ERRO | LINHA {0}] O primeiro campo da linha deve ser um NÚMERO INTEIRO!</value>
     <comment>Variable is 'inputFileLineCounter'</comment>
   </data>
   <data name="InputFilesValidationPassed" xml:space="preserve">
@@ -331,12 +331,16 @@ Por favor insira um novo título: </value>
     <comment>Variable is 'dataList.Count'</comment>
   </data>
   <data name="InputFilesValidationSectionInformationTest1" xml:space="preserve">
-    <value>[ERROR | LINHA {0}] Número de seção e / ou título da seção estão vázios e ambos são necessários para a aplicação!</value>
+    <value>[ERRO | LINHA {0}] Número de seção e / ou título da seção estão vázios e ambos são necessários para a aplicação!</value>
     <comment>Variable is 'sectionFileLineCounter'</comment>
   </data>
   <data name="InputFilesValidationSectionInformationTest2" xml:space="preserve">
-    <value>[ERROR | LINHA {0}] O primeiro campo da linha deve ser um NÚMERO INTEIRO!</value>
+    <value>[ERRO | LINHA {0}] O primeiro campo da linha deve ser um NÚMERO INTEIRO!</value>
     <comment>Variable is 'sectionFileLineCounter'</comment>
+  </data>
+  <data name="InputFilesValidationSectionInformationTestLastLine" xml:space="preserve">
+    <value>[ERRO | LINHA {0}] A quantidade de seções definida neste arquivo deve ser a mesma que o último número de seção do arquivo Input_Data!</value>
+    <comment>Variable is '{sectionList.Last().SectionNumber)}'</comment>
   </data>
   <data name="InputFilesValidationTitle" xml:space="preserve">
     <value>         VALIDAÇÃO DOS ARQUIVOS DE ENTRADA
@@ -363,7 +367,7 @@ Por favor insira um novo título: </value>
 Pressione alguma tecla para proceder...</value>
   </data>
   <data name="PrintGenericErrorException" xml:space="preserve">
-    <value>[ERROR]: Ocorreu um erro! Veja os detalhes abaixo: 
+    <value>[ERRO]: Ocorreu um erro! Veja os detalhes abaixo: 
 {0}</value>
     <comment>Variable is '{exception.Message}'</comment>
   </data>
