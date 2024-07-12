@@ -561,6 +561,15 @@ namespace APITestDocumentCreator.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ERROR] There is empty lines in this file, remove all of them and restart the application!.
+        /// </summary>
+        internal static string InputFilesValidationOutOfRangeException {
+            get {
+                return ResourceManager.GetString("InputFilesValidationOutOfRangeException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 
         ///[INFO] All validations are OK and you can proceed with the creation of the document!
         ///.
@@ -775,8 +784,7 @@ namespace APITestDocumentCreator.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///- Type &apos;1&apos; to proceed with the tutorial
+        ///   Looks up a localized string similar to - Type &apos;1&apos; to proceed with the tutorial
         ///- Type &apos;2&apos; to avoid tutorial
         ///
         ///Option: .

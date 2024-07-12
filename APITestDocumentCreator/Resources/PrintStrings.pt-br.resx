@@ -318,6 +318,9 @@ Por favor insira um novo título: </value>
     <value>[ERRO | LINHA {0}] O primeiro campo da linha deve ser um NÚMERO INTEIRO!</value>
     <comment>Variable is 'inputFileLineCounter'</comment>
   </data>
+  <data name="InputFilesValidationOutOfRangeException" xml:space="preserve">
+    <value>[ERRO] Existe linhas em branco neste arquivo, remova todas e reinicie a aplicação!</value>
+  </data>
   <data name="InputFilesValidationPassed" xml:space="preserve">
     <value>
 [INFO] Todas as validações estão OK e você pode proceder com a criação do documento!
@@ -343,7 +346,7 @@ Por favor insira um novo título: </value>
     <comment>Variable is '{sectionList.Last().SectionNumber)}'</comment>
   </data>
   <data name="InputFilesValidationTitle" xml:space="preserve">
-    <value>         VALIDAÇÃO DOS ARQUIVOS DE ENTRADA
+    <value>  VALIDAÇÃO DOS ARQUIVOS DE ENTRADA
 </value>
   </data>
   <data name="JSONDescriptionWord" xml:space="preserve">
@@ -381,8 +384,7 @@ Pressione alguma tecla para proceder...</value>
 </value>
   </data>
   <data name="UserDecisionExampleDocumentation" xml:space="preserve">
-    <value>
-- Aperte '1' para criar o exemplo
+    <value>- Aperte '1' para criar o exemplo
 - Aperte '2' para customizar os dados de entrada
 
 Opção: </value>
@@ -410,8 +412,7 @@ Opção: </value>
 [INFO] Usuário não precisa verificar o tutorial!</value>
   </data>
   <data name="UserDecisionTutorial" xml:space="preserve">
-    <value>
-- Aperte '1' para ir ao tutorial
+    <value>- Aperte '1' para ir ao tutorial
 - Aperte '2' para evitar o tutorial
 
 Opção: </value>

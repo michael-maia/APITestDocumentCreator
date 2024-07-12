@@ -317,6 +317,9 @@ Please insert a new title: </value>
     <value>[ERROR | LINE {0}] The first field of the line must be a INTEGER NUMBER!</value>
     <comment>Variable is 'inputFileLineCounter'</comment>
   </data>
+  <data name="InputFilesValidationOutOfRangeException" xml:space="preserve">
+    <value>[ERROR] There is empty lines in this file, remove all of them and restart the application!</value>
+  </data>
   <data name="InputFilesValidationPassed" xml:space="preserve">
     <value>
 [INFO] All validations are OK and you can proceed with the creation of the document!
@@ -411,8 +414,7 @@ Option: </value>
 [INFO] User don't need to see the tutorial!</value>
   </data>
   <data name="UserDecisionTutorial" xml:space="preserve">
-    <value>
-- Type '1' to proceed with the tutorial
+    <value>- Type '1' to proceed with the tutorial
 - Type '2' to avoid tutorial
 
 Option: </value>

@@ -268,6 +268,7 @@ namespace APITestDocumentCreator
 
             try
             {
+                Console.Write("1) INPUT_DATA STATUS: ");
                 // Every line of the file will be transformed in a instance of InputData so the values can be accessed as a parameter.
                 using (StreamReader streamInputData = new($"{baseFolder}\\{fileNamesList[0]}.txt", Encoding.UTF8, false, options))
                 {
@@ -317,7 +318,6 @@ namespace APITestDocumentCreator
 
                     if (exampleRequested == false)
                     {
-                        Console.Write("1) INPUT_DATA STATUS: ");
                         if ((inputErrorList.Count != 0) == false)
                         {
                             Console.WriteLine("[OK]");
@@ -333,13 +333,21 @@ namespace APITestDocumentCreator
                     }
                 }
             }
+            catch(IndexOutOfRangeException indexException)
+            {
+                validationStatus = false;
+                Console.WriteLine("[N-OK]");
+                Console.WriteLine(string.Format($"\t> {resourceManager.GetString("InputFilesValidationOutOfRangeException")}"));
+            }
             catch (Exception exception)
             {
+                Console.WriteLine("[N-OK]");
                 PrintGenericErrorException(resourceManager, exception);
             }
 
             try
             {
+                Console.Write("2) SECTION_INFORMATION STATUS: ");
                 // Every line of the file will be transformed in a instance of SectionProperties so the values can be accessed as a parameter.
                 using (StreamReader streamSectionFile = new($"{baseFolder}\\{fileNamesList[1]}.txt", Encoding.UTF8, false, options))
                 {
@@ -380,7 +388,7 @@ namespace APITestDocumentCreator
                         sectionFileLineCounter++;
                     }
 
-                    if(inputDataLastSectionNumber != (sectionList.Last().SectionNumber) == true)
+                    if (inputDataLastSectionNumber != (sectionList.Last().SectionNumber) == true)
                     {
                         sectionErrorList.Add(string.Format(resourceManager.GetString("InputFilesValidationSectionInformationTestLastLine"), sectionList.Last().SectionNumber));
                         validationStatus = false;
@@ -388,7 +396,6 @@ namespace APITestDocumentCreator
 
                     if (exampleRequested == false)
                     {
-                        Console.Write("2) SECTION_INFORMATION STATUS: ");
                         if ((sectionErrorList.Count != 0) == false)
                         {
                             Console.WriteLine("[OK]");
@@ -404,6 +411,12 @@ namespace APITestDocumentCreator
                     }
                 }
             }
+            catch (IndexOutOfRangeException indexException)
+            {
+                validationStatus = false;
+                Console.WriteLine("[N-OK]");
+                Console.WriteLine(string.Format($"\t> {resourceManager.GetString("InputFilesValidationOutOfRangeException")}"));
+            }
             catch (Exception exception)
             {
                 PrintGenericErrorException(resourceManager, exception);
@@ -412,6 +425,7 @@ namespace APITestDocumentCreator
             // Retrieving the parameters name list in the .txt file that the user wants to highlight in the document.
             try
             {
+                Console.Write("3) HIGHLIGHT_PARAMETERS STATUS: ");
                 // Every line of the file will be transformed in a instance of SectionProperties so the values can be accessed as a parameter.
                 using (StreamReader streamHighlightFile = new($"{baseFolder}\\{fileNamesList[2]}.txt", Encoding.UTF8, false, options))
                 {
@@ -471,7 +485,6 @@ namespace APITestDocumentCreator
 
                     if (exampleRequested == false)
                     {
-                        Console.Write("3) HIGHLIGHT_PARAMETERS STATUS: ");
                         if ((highlightErrorList.Count != 0) == false)
                         {
                             Console.WriteLine("[OK]");
@@ -487,6 +500,12 @@ namespace APITestDocumentCreator
                     }
                 }
             }
+            catch (IndexOutOfRangeException indexException)
+            {
+                validationStatus = false;
+                Console.WriteLine("[N-OK]");
+                Console.WriteLine(string.Format($"\t> {resourceManager.GetString("InputFilesValidationOutOfRangeException")}"));
+            }
             catch (Exception exception)
             {
                 PrintGenericErrorException(resourceManager, exception);
@@ -500,11 +519,11 @@ namespace APITestDocumentCreator
                 Console.WriteLine("4) PICTURES STATUS: [OK]");
                 if (picturesList.Length > 0)
                 {
-                    Console.WriteLine(resourceManager.GetString("InputFilesValidationPicturesFolderCounterMoreThanZero"), dataList.Count);
+                    Console.WriteLine($"\t> {resourceManager.GetString("InputFilesValidationPicturesFolderCounterMoreThanZero")}", dataList.Count);
                 }
                 else
                 {
-                    Console.WriteLine(resourceManager.GetString("InputFilesValidationPicturesFolderCounterEqualZero"));
+                    Console.WriteLine($"\t> {resourceManager.GetString("InputFilesValidationPicturesFolderCounterEqualZero")}");
                 }
 
                 if (validationStatus == true)
@@ -693,8 +712,7 @@ namespace APITestDocumentCreator
 
         public static void PrintGenericErrorException(ResourceManager resourceManager, Exception exception)
         {
-            //Console.WriteLine($"\n[ERROR]: An error has occurred! See details below: \n{exception.Message}");
-            Console.WriteLine(resourceManager.GetString("PrintGenericErrorException"));
+            Console.WriteLine(string.Format($"\t> {resourceManager.GetString("PrintGenericErrorException")}"));
         }
     }
 }
